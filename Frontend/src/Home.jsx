@@ -96,7 +96,7 @@ function Home() {
   return (
     <div className="home-container">
       <div className="home-header">
-        <h1>Collaboration Rooms</h1>
+        <h1>TechpathAI Rooms</h1>
       </div>
       
       <div className="create-room-section">

@@ -324,4 +324,77 @@ body {
   .delete-button {
     width: 100%;
   }
+}
+
+/* Passcode Auth Styles */
+.passcode-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 2rem;
+}
+
+.passcode-form {
+  background: var(--card-background);
+  padding: 2.5rem 3rem;
+  border-radius: 16px;
+  box-shadow: var(--shadow-lg);
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+}
+
+.passcode-form h2 {
+  font-size: 1.8rem;
+  color: var(--primary-color);
+  margin-bottom: 1rem;
+}
+
+.passcode-form p {
+  color: var(--text-secondary);
+  margin-bottom: 2rem;
+}
+
+.passcode-input {
+  width: 100%;
+  padding: 1rem 1.2rem;
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  font-size: 1rem;
+  margin-bottom: 1.5rem;
+  box-sizing: border-box;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.passcode-input:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.passcode-submit-button {
+  width: 100%;
+  background: linear-gradient(135deg, var(--accent-color), #2980b9);
+  color: white;
+  border: none;
+  padding: 1rem;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.passcode-submit-button:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.passcode-error {
+  margin-top: 1.5rem;
+  margin-bottom: 0;
 } 
