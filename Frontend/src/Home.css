@@ -1,0 +1,327 @@
+:root {
+  --primary-color: #2c3e50;
+  --secondary-color: #34495e;
+  --accent-color: #3498db;
+  --success-color: #2ecc71;
+  --danger-color: #e74c3c;
+  --background-color: #f8f9fa;
+  --card-background: #ffffff;
+  --text-primary: #2c3e50;
+  --text-secondary: #7f8c8d;
+  --border-color: #ecf0f1;
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+}
+
+#root {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0;
+  text-align: center;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--background-color);
+  color: var(--text-primary);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.home-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.home-header {
+  text-align: center;
+  margin-bottom: 4rem;
+  position: relative;
+  width: 100%;
+}
+
+.home-header h1 {
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  position: relative;
+  text-align: center;
+}
+
+.home-header h1::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 4px;
+  background: linear-gradient(90deg, var(--accent-color), var(--success-color));
+  border-radius: 2px;
+}
+
+.create-room-section {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  justify-content: center;
+  max-width: 600px;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 1.5rem;
+  background: var(--card-background);
+  border-radius: 16px;
+  box-shadow: var(--shadow-md);
+}
+
+.create-room-input {
+  flex: 1;
+  padding: 1rem 1.2rem;
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: var(--card-background);
+  color: var(--text-primary);
+  width: 100%;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.create-room-input:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.create-room-input::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.7;
+  text-align: center;
+}
+
+.create-room-input:disabled {
+  background-color: var(--background-color);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.create-room-button {
+  background: linear-gradient(135deg, var(--accent-color), #2980b9);
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  min-width: 150px;
+}
+
+.create-room-button:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.create-room-button:disabled {
+  background: var(--text-secondary);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.rooms-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  padding: 1rem;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.room-card {
+  background: var(--card-background);
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: var(--shadow-md);
+  transition: all 0.3s ease;
+  border: 1px solid var(--border-color);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.room-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, var(--accent-color), var(--success-color));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.room-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-lg);
+}
+
+.room-card:hover::before {
+  opacity: 1;
+}
+
+.room-name {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: center;
+  width: 100%;
+}
+
+.room-name::before {
+  content: '📝';
+  font-size: 1.2rem;
+}
+
+.room-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  width: 100%;
+}
+
+.join-button {
+  background: linear-gradient(135deg, var(--success-color), #27ae60);
+  color: white;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 0.9rem;
+  min-width: 100px;
+}
+
+.join-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(46, 204, 113, 0.2);
+}
+
+.delete-button {
+  background: linear-gradient(135deg, var(--danger-color), #c0392b);
+  color: white;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 0.9rem;
+  min-width: 100px;
+}
+
+.delete-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.2);
+}
+
+.error-message {
+  color: var(--danger-color);
+  font-size: 0.9rem;
+  margin-top: 0.8rem;
+  text-align: center;
+  padding: 0.8rem;
+  background: rgba(231, 76, 60, 0.1);
+  border-radius: 8px;
+  animation: slideIn 0.3s ease;
+  max-width: 600px;
+  width: 100%;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Loading State */
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  width: 100%;
+  font-size: 1.2rem;
+  color: var(--text-secondary);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .home-container {
+    padding: 1rem;
+  }
+
+  .home-header h1 {
+    font-size: 2.5rem;
+  }
+
+  .create-room-section {
+    flex-direction: column;
+    padding: 1rem;
+  }
+
+  .create-room-button {
+    width: 100%;
+  }
+
+  .rooms-grid {
+    grid-template-columns: 1fr;
+    padding: 0.5rem;
+  }
+
+  .room-actions {
+    flex-direction: column;
+  }
+
+  .join-button,
+  .delete-button {
+    width: 100%;
+  }
+} 
