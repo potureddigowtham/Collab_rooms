@@ -1,7 +1,20 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
 import './Editor.css';
+
+// Simple debounce function
+function debounce(func, wait) {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
 
 function CodeEditor() {
   const { roomName } = useParams();
@@ -46,11 +59,20 @@ function CodeEditor() {
     };
   }, [roomName]);
 
+  // Debounced function to send the editor content
+  const sendContentDebounced = useCallback(
+    debounce((valueToSend) => {
+      if (socketRef.current && isConnected) {
+        console.log('Sending content (debounced)'); // Log when sending
+        socketRef.current.send(valueToSend);
+      }
+    }, 500), // Debounce interval: 500ms
+    [isConnected] // Recreate the debounced function if connection status changes
+  );
+
   const handleEditorChange = (value) => {
-    setContent(value);
-    if (socketRef.current && isConnected) {
-      socketRef.current.send(value);
-    }
+    setContent(value); // Update local state immediately for responsiveness
+    sendContentDebounced(value); // Send the value over WebSocket, but debounced
   };
 
   const handleFontSizeChange = (e) => {

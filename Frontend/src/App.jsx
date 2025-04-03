@@ -1,23 +1,34 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import Home from './Home';
-import Editor from './Editor';
-import PasscodeAuth from './PasscodeAuth';
+
+// Lazy load components
+const Home = lazy(() => import('./Home'));
+const Editor = lazy(() => import('./Editor'));
+const PasscodeAuth = lazy(() => import('./PasscodeAuth'));
+
+// Simple loading component (can be styled better)
+const LoadingFallback = () => (
+  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+    Loading...
+  </div>
+);
 
 function App() {
   return (
     <Router>
-      <Routes>
-        <Route 
-          path="/" 
-          element={
-            <PasscodeAuth>
-              <Home />
-            </PasscodeAuth>
-          }
-        />
-        <Route path="/editor/:roomName" element={<Editor />} />
-      </Routes>
+      <Suspense fallback={<LoadingFallback />}>
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <PasscodeAuth>
+                <Home />
+              </PasscodeAuth>
+            }
+          />
+          <Route path="/editor/:roomName" element={<Editor />} />
+        </Routes>
+      </Suspense>
     </Router>
   );
 }
