@@ -1,0 +1,53 @@
+.editor-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #1e1e1e;
+  overflow: hidden;
+}
+
+.editor-header {
+  padding: 1rem;
+  background-color: #252526;
+  color: #ffffff;
+  border-bottom: 1px solid #3c3c3c;
+  flex-shrink: 0;
+}
+
+.editor-header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 500;
+}
+
+.connection-status {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: #cccccc;
+}
+
+.editor-content {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  min-height: 0; /* This is important for flex child */
+}
+
+/* Monaco Editor customizations */
+.monaco-editor {
+  padding-top: 1rem;
+  height: 100% !important;
+}
+
+/* Custom scrollbar for the editor */
+.monaco-editor .scrollbar {
+  width: 14px !important;
+}
+
+.monaco-editor .scrollbar .slider {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.monaco-editor .scrollbar .slider:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+} 
