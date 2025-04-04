@@ -91,10 +91,3 @@ async def get_details(room_name: str):
         "room": dict(room),
         "active_connections": len(active_connections.get(room_name, set()))
     }
-
-# For production deployment
-if __name__ == "__main__":
-    import uvicorn
-    import os
-    port = int(os.environ.get("PORT", 8000))
-    uvicorn.run("main:app", host="0.0.0.0", port=port, log_level="info", reload=True)
