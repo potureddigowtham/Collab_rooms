@@ -16,7 +16,7 @@ function Home() {
 
   const fetchRooms = async () => {
     try {
-      const response = await fetch('http://localhost:8000/rooms');
+      const response = await fetch('http://3.90.206.40:8000/rooms');
       if (!response.ok) throw new Error('Failed to fetch rooms');
       const data = await response.json();
       setRooms(data.rooms);
@@ -51,7 +51,7 @@ function Home() {
     setError('');
 
     try {
-      const response = await fetch(`http://localhost:8000/create_room?room_name=${encodeURIComponent(newRoom)}`, {
+      const response = await fetch(`http://3.90.206.40:8000/create_room?room_name=${encodeURIComponent(newRoom)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       });
@@ -71,7 +71,7 @@ function Home() {
 
   const deleteRoom = async (roomName) => {
     try {
-      const response = await fetch(`http://localhost:8000/delete_room/${roomName}`, {
+      const response = await fetch(`http://3.90.206.40:8000/delete_room/${roomName}`, {
         method: 'DELETE',
       });
 

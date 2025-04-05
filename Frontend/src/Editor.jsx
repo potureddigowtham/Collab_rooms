@@ -28,7 +28,7 @@ function CodeEditor() {
 
   useEffect(() => {
     if (!socketRef.current) {
-      socketRef.current = new WebSocket(`ws://localhost:8000/ws/${roomName}`);
+      socketRef.current = new WebSocket(`ws://3.90.206.40:8000/ws/${roomName}`);
       
       socketRef.current.onopen = () => {
         setIsConnected(true);
