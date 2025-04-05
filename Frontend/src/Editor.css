@@ -52,6 +52,12 @@
   gap: 0.5rem;
 }
 
+.editor-header h1 .app-name {
+  color: var(--editor-accent);
+  font-weight: 600;
+  margin-right: 0.5rem;
+}
+
 .editor-header h1::before {
   content: '📝';
   font-size: 1.2rem;

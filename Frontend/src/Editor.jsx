@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
+import config from './config';
 import './Editor.css';
 
 // Simple debounce function
@@ -28,7 +29,7 @@ function CodeEditor() {
 
   useEffect(() => {
     if (!socketRef.current) {
-      socketRef.current = new WebSocket(`ws://3.90.206.40:8000/ws/${roomName}`);
+      socketRef.current = new WebSocket(`${config.wsUrl}/ws/${roomName}`);
       
       socketRef.current.onopen = () => {
         setIsConnected(true);
@@ -99,7 +100,10 @@ function CodeEditor() {
     <div className="editor-container">
       <div className="editor-header">
         <div className="editor-header-left">
-          <h1>{roomName}</h1>
+          <h1>
+            <span className="app-name">Techpath AI Meeting Pad</span>
+            {roomName}
+          </h1>
           <div className={`connection-status ${isConnected ? 'connected' : 'disconnected'}`}>
             {isConnected ? 'Connected' : 'Disconnected'}
           </div>
