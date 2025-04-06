@@ -15,7 +15,6 @@
   height: 100vh;
   width: 100vw;
   display: flex;
-  flex-direction: column;
   background-color: var(--editor-bg);
   overflow: hidden;
   position: fixed;
@@ -23,6 +22,14 @@
   left: 0;
   right: 0;
   bottom: 0;
+}
+
+.editor-wrapper {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  transition: width 0.3s ease;
+  min-width: 40%;
 }
 
 .editor-header {
@@ -204,4 +211,27 @@
   .editor-content {
     padding: 0.5rem;
   }
+}
+
+.notepad-button {
+  background: none;
+  border: none;
+  color: var(--editor-text-secondary);
+  cursor: pointer;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  border-radius: 4px;
+}
+
+.notepad-button:hover {
+  color: var(--editor-text);
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.notepad-button svg {
+  width: 24px;
+  height: 24px;
 } 
