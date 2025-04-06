@@ -1,12 +1,12 @@
 const config = {
   development: {
-    apiUrl: import.meta.env.VITE_API_URL || 'http://localhost:5000',
-    wsUrl: import.meta.env.VITE_WS_URL || 'ws://localhost:5000'
+    apiUrl: import.meta.env.VITE_API_URL || 'http://localhost:8000',
+    wsUrl: import.meta.env.VITE_WS_URL || 'ws://localhost:8000'
   },
   production: {
     // Use relative URLs in production since nginx will handle the routing
-    apiUrl: import.meta.env.VITE_API_URL || '/api',
-    wsUrl: import.meta.env.VITE_WS_URL || 'wss://3.90.206.40/api'
+    apiUrl: import.meta.env.VITE_API_URL || 'http://localhost:8000',
+    wsUrl: import.meta.env.VITE_WS_URL || 'ws://localhost:8000'
   }
 };
 
