@@ -1,5 +1,0 @@
-The home page is looking very kidish. lets improve the way it looks.
-lets have seperate cards for each room and color join as green button and delete as red. 
-
-even create room should be looking good. lets also keep validations like not accept empty value when creating a room in UI etc.
-

@@ -1,0 +1,2 @@
+ssh -i collab_app_key.pem ec2-user@3.90.206.40
+

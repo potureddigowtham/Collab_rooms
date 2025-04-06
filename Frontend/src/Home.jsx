@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import config from './config';
 import './Home.css';
 
 function Home() {
@@ -16,7 +17,7 @@ function Home() {
 
   const fetchRooms = async () => {
     try {
-      const response = await fetch('http://localhost:8000/rooms');
+      const response = await fetch(`${config.apiUrl}/rooms`);
       if (!response.ok) throw new Error('Failed to fetch rooms');
       const data = await response.json();
       setRooms(data.rooms);
@@ -51,7 +52,7 @@ function Home() {
     setError('');
 
     try {
-      const response = await fetch(`http://localhost:8000/create_room?room_name=${encodeURIComponent(newRoom)}`, {
+      const response = await fetch(`${config.apiUrl}/create_room?room_name=${encodeURIComponent(newRoom)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       });
@@ -71,7 +72,7 @@ function Home() {
 
   const deleteRoom = async (roomName) => {
     try {
-      const response = await fetch(`http://localhost:8000/delete_room/${roomName}`, {
+      const response = await fetch(`${config.apiUrl}/delete_room/${roomName}`, {
         method: 'DELETE',
       });
 

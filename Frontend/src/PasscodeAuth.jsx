@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './Home.css'; // Reuse styles for consistency
 
-const CORRECT_PASSCODE = '1234'; // Simple hardcoded passcode
+const CORRECT_PASSCODE = 'TechPathAi24'; // Simple hardcoded passcode
 
 function PasscodeAuth({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
