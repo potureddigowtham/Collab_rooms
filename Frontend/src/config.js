@@ -4,8 +4,9 @@ const config = {
     wsUrl: import.meta.env.VITE_WS_URL || 'ws://localhost:8000'
   },
   production: {
-    apiUrl: import.meta.env.VITE_API_URL || 'http://3.90.206.40:8000',
-    wsUrl: import.meta.env.VITE_WS_URL || 'ws://3.90.206.40:8000'
+    // Use relative URLs in production since nginx will handle the routing
+    apiUrl: import.meta.env.VITE_API_URL || '/api',
+    wsUrl: import.meta.env.VITE_WS_URL || 'wss://3.90.206.40/api'
   }
 };
 
