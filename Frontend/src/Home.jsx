@@ -72,7 +72,7 @@ function Home() {
 
   const deleteRoom = async (roomName) => {
     try {
-      const response = await fetch(`http://3.90.206.40:8000/delete_room/${roomName}`, {
+      const response = await fetch(`${config.apiUrl}/delete_room/${roomName}`, {
         method: 'DELETE',
       });
 
