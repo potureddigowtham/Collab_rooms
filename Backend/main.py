@@ -91,3 +91,29 @@ async def get_details(room_name: str):
         "room": dict(room),
         "active_connections": len(active_connections.get(room_name, set()))
     }
+
+# Admin content endpoints
+@app.post("/admin/content")
+async def create_admin_content(title: str, content: str):
+    if db.add_admin_content(title, content):
+        return {"message": "Content created", "title": title}
+    raise HTTPException(status_code=400, detail="Failed to create content")
+
+@app.get("/admin/content")
+async def get_admin_content(content_id: int = None):
+    content = db.get_admin_content(content_id)
+    if content is None and content_id is not None:
+        raise HTTPException(status_code=404, detail="Content not found")
+    return {"content": content}
+
+@app.put("/admin/content/{content_id}")
+async def update_admin_content(content_id: int, title: str, content: str):
+    if db.update_admin_content(content_id, title, content):
+        return {"message": "Content updated", "id": content_id}
+    raise HTTPException(status_code=404, detail="Content not found")
+
+@app.delete("/admin/content/{content_id}")
+async def delete_admin_content(content_id: int):
+    if db.delete_admin_content(content_id):
+        return {"message": "Content deleted"}
+    raise HTTPException(status_code=404, detail="Content not found")
