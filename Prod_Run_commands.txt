@@ -1,0 +1,27 @@
+# Config path - backend
+sudo vim /etc/systemd/system/collab-rooms-backend.service
+
+#config path - UI
+sudo vim /etc/systemd/system/collab-rooms-frontend.service
+
+# View backend logs
+sudo journalctl -u collab-rooms-backend -f
+
+# View frontend logs
+sudo journalctl -u collab-rooms-frontend -f
+
+# Stop a service
+sudo systemctl stop collab-rooms-backend
+sudo systemctl stop collab-rooms-frontend
+
+# Restart a service
+sudo systemctl restart collab-rooms-backend
+sudo systemctl restart collab-rooms-frontend
+
+# Check service status
+sudo systemctl status collab-rooms-backend
+sudo systemctl status collab-rooms-frontend
+
+# View logs
+sudo journalctl -u collab-rooms-backend -f
+sudo journalctl -u collab-rooms-frontend -f
