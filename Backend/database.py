@@ -58,11 +58,11 @@ class Database:
                 return dict(row)
             return None
 
-    def get_all_rooms(self) -> List[str]:
+    def get_all_rooms(self) -> List[dict]:
         with self.get_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT room_name FROM rooms")
-            return [row['room_name'] for row in cursor.fetchall()]
+            cursor.execute("SELECT room_name, created_at FROM rooms ORDER BY created_at DESC")
+            return [dict(row) for row in cursor.fetchall()]
 
     def delete_room(self, room_name: str) -> bool:
         with self.get_connection() as conn:

@@ -27,6 +27,7 @@ async def create_room(room_name: str):
         return {"message": "Room created", "room_name": room_name}
     raise HTTPException(status_code=400, detail="Room already exists")
 
+# Returns a list of rooms with room_name and created_at (latest first)
 @app.get("/rooms")
 async def get_rooms():
     return {"rooms": db.get_all_rooms()}
