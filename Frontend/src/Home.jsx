@@ -6,6 +6,7 @@ import './Home.css';
 function Home() {
   const [rooms, setRooms] = useState([]);
   const [newRoom, setNewRoom] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
@@ -20,7 +21,9 @@ function Home() {
       const response = await fetch(`${config.apiUrl}/rooms`);
       if (!response.ok) throw new Error('Failed to fetch rooms');
       const data = await response.json();
-      setRooms(data.rooms);
+      // Defensive: sort by created_at descending (latest first)
+      const sortedRooms = [...data.rooms].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      setRooms(sortedRooms);
     } catch (err) {
       setError('Failed to load rooms. Please try again later.');
     } finally {
@@ -35,7 +38,7 @@ function Home() {
     if (name.length < 3) {
       return 'Room name must be at least 3 characters long';
     }
-    if (rooms.includes(name)) {
+    if (rooms.some(r => r.room_name === name)) {
       return 'Room name already exists';
     }
     return '';
@@ -61,7 +64,8 @@ function Home() {
         throw new Error('Failed to create room');
       }
 
-      setRooms([...rooms, newRoom]);
+      // After creation, refetch rooms to get correct created_at
+      fetchRooms();
       setNewRoom('');
     } catch (err) {
       setError(err.message);
@@ -129,6 +133,16 @@ function Home() {
       
       {error && <div className="error-message">{error}</div>}
 
+      <div className="room-search-section">
+        <input
+          className="room-search-input"
+          type="text"
+          placeholder="Search rooms..."
+          value={searchTerm}
+          onChange={e => setSearchTerm(e.target.value)}
+        />
+      </div>
+
       <div className="rooms-grid">
         {rooms.length === 0 ? (
           <div className="room-card" style={{ textAlign: 'center', gridColumn: '1 / -1' }}>
@@ -137,19 +151,24 @@ function Home() {
             </p>
           </div>
         ) : (
-          rooms.map((room) => (
-            <div key={room} className="room-card">
-              <div className="room-name">{room}</div>
+          rooms
+            .filter(room => room.room_name.toLowerCase().includes(searchTerm.toLowerCase()))
+            .map((room) => (
+              <div key={room.room_name} className="room-card">
+              <div className="room-name">{room.room_name}</div>
+              <div className="room-meta" style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: 4 }}>
+                Created: {room.created_at ? new Date(room.created_at).toLocaleString() : 'N/A'}
+              </div>
               <div className="room-actions">
                 <button
                   className="join-button"
-                  onClick={() => navigate(`/editor/${room}`)}
+                  onClick={() => navigate(`/editor/${room.room_name}`)}
                 >
                   Join
                 </button>
                 <button
                   className="delete-button"
-                  onClick={() => deleteRoom(room)}
+                  onClick={() => deleteRoom(room.room_name)}
                 >
                   Delete
                 </button>

@@ -56,6 +56,7 @@ body {
   margin-bottom: 1rem;
   background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   position: relative;
   text-align: center;
@@ -76,16 +77,17 @@ body {
 .create-room-section {
   display: flex;
   gap: 1rem;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
   justify-content: center;
+  align-items: center;
   max-width: 600px;
   width: 100%;
   margin-left: auto;
   margin-right: auto;
-  padding: 1.5rem;
-  background: var(--card-background);
-  border-radius: 16px;
-  box-shadow: var(--shadow-md);
+  padding: 0;
+  background: none;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 .create-room-input {
@@ -149,23 +151,71 @@ body {
 
 .rooms-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(5, 1fr);
   gap: 2rem;
-  padding: 1rem;
+  margin-top: 2rem;
   width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
+  padding: 2rem 0;
+  box-shadow: none;
+  border: none;
+  position: relative;
+  overflow: visible;
+}
+
+@media (max-width: 1400px) {
+  .rooms-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+@media (max-width: 1100px) {
+  .rooms-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+@media (max-width: 800px) {
+  .rooms-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 500px) {
+  .rooms-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.room-search-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 1.5rem;
+}
+
+.room-search-input {
+  padding: 0.75rem 1.2rem;
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  font-size: 1rem;
+  width: 320px;
+  max-width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.room-search-input:focus {
+  border-color: var(--accent-color);
+  outline: none;
 }
 
 .room-card {
   background: var(--card-background);
   border-radius: 16px;
-  padding: 2rem;
   box-shadow: var(--shadow-md);
-  transition: all 0.3s ease;
   border: 1px solid var(--border-color);
+  padding: 2rem 1.5rem 1.5rem 1.5rem;
+  transition: all 0.3s ease;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -293,6 +343,16 @@ body {
 }
 
 /* Responsive Design */
+@media (max-width: 1200px) {
+  .rooms-grid {
+    grid-template-columns: repeat(3, 1fr); /* 3 columns for tablets */
+  }
+}
+@media (max-width: 900px) {
+  .rooms-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
 @media (max-width: 768px) {
   .home-container {
     padding: 1rem;
