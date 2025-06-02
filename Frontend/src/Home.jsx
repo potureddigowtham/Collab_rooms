@@ -84,7 +84,7 @@ function Home() {
         throw new Error('Failed to delete room');
       }
 
-      setRooms(rooms.filter((room) => room !== roomName));
+      setRooms(rooms.filter((room) => room.room_name !== roomName));
     } catch (err) {
       setError('Failed to delete room. Please try again.');
     }
@@ -163,12 +163,16 @@ function Home() {
                 <button
                   className="join-button"
                   onClick={() => navigate(`/editor/${room.room_name}`)}
+                  aria-label="Join Room"
+                  title="Join Room"
                 >
                   Join
                 </button>
                 <button
                   className="delete-button"
                   onClick={() => deleteRoom(room.room_name)}
+                  aria-label="Delete Room"
+                  title="Delete Room"
                 >
                   Delete
                 </button>

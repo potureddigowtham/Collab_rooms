@@ -151,7 +151,7 @@ body {
 
 .rooms-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 2rem;
   margin-top: 2rem;
   width: 100%;
@@ -162,16 +162,6 @@ body {
   overflow: visible;
 }
 
-@media (max-width: 1400px) {
-  .rooms-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-@media (max-width: 1100px) {
-  .rooms-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
 @media (max-width: 800px) {
   .rooms-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -377,13 +367,102 @@ body {
   }
 
   .room-actions {
-    flex-direction: column;
+    display: flex;
+    flex-direction: row;
+    gap: 0.1rem;
+    justify-content: center;
+    margin-top: 0.1rem;
   }
 
-  .join-button,
-  .delete-button {
-    width: 100%;
-  }
+  .join-button, .delete-button {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  min-height: 28px;
+  max-width: 28px;
+  max-height: 28px;
+  border-radius: 50%;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  margin: 0 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: filter 0.18s, box-shadow 0.18s, transform 0.18s;
+  box-shadow: 0 1.5px 6px 0 rgba(44,62,80,0.10);
+  padding: 0;
+}
+
+.join-button {
+  background: #27ae60;
+}
+.join-button:hover {
+  filter: brightness(1.15);
+  transform: scale(1.09);
+}
+
+.delete-button {
+  background: #e74c3c;
+}
+.delete-button:hover {
+  filter: brightness(1.15);
+  transform: scale(1.09);
+}
+
+
+.join-button {
+  border-color: rgba(52,152,219,0.35);
+  background: linear-gradient(90deg, rgba(52,152,219,0.24), rgba(109,213,250,0.17));
+  color: #fff;
+}
+.join-button:hover {
+  background: linear-gradient(90deg, #2980b9 70%, var(--accent-color) 100%);
+  border-color: #2980b9;
+  transform: scale(1.09);
+  box-shadow: 0 0 12px 2px #6dd5fa66, 0 2px 16px #3498db33;
+}
+
+.delete-button {
+  border-color: rgba(231,76,60,0.35);
+  background: linear-gradient(90deg, rgba(248,80,50,0.19), rgba(231,56,39,0.14));
+  color: #fff;
+}
+.delete-button:hover {
+  background: linear-gradient(90deg, #e73827 70%, #f85032 100%);
+  border-color: #e73827;
+  transform: scale(1.09);
+  box-shadow: 0 0 12px 2px #e7382766, 0 2px 16px #f8503233;
+}
+
+.join-button svg, .delete-button svg {
+  width: 1.1em;
+  height: 1.1em;
+  margin-right: 0.1em;
+  vertical-align: middle;
+  display: inline-block;
+}
+
+.join-button {
+  background: linear-gradient(90deg, var(--accent-color), #6dd5fa);
+  color: #fff;
+}
+.join-button:hover {
+  background: linear-gradient(90deg, #2980b9, var(--accent-color));
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 4px 16px rgba(52,152,219,0.16);
+}
+
+.delete-button {
+  background: linear-gradient(90deg, #f85032, #e73827);
+  color: #fff;
+}
+.delete-button:hover {
+  background: linear-gradient(90deg, #e73827, #f85032);
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 4px 16px rgba(231,76,60,0.16);
+}
+
 }
 
 /* Passcode Auth Styles */
@@ -457,4 +536,4 @@ body {
 .passcode-error {
   margin-top: 1.5rem;
   margin-bottom: 0;
-} 
+}
