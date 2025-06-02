@@ -168,3 +168,23 @@ class Database:
             cursor.execute("SELECT is_locked FROM rooms WHERE room_name = ?", (room_name,))
             row = cursor.fetchone()
             return bool(row['is_locked']) if row else False
+            
+    def lock_rooms_older_than_days(self, days: int = 30) -> int:
+        """
+        Lock all rooms that were created more than the specified number of days ago.
+        Returns the number of rooms that were locked.
+        """
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            # SQLite date calculation to find rooms older than specified days
+            cursor.execute(
+                """
+                UPDATE rooms 
+                SET is_locked = 1, updated_at = CURRENT_TIMESTAMP 
+                WHERE is_locked = 0 
+                AND datetime(created_at) <= datetime('now', ?)
+                """,
+                (f'-{days} days',)
+            )
+            conn.commit()
+            return cursor.rowcount

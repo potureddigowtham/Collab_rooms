@@ -38,8 +38,25 @@ async def create_room(room_name: str):
 
 # Returns a list of rooms with room_name and created_at (latest first)
 @app.get("/rooms")
-async def get_rooms():
-    return {"rooms": db.get_all_rooms()}
+async def get_rooms(auto_lock_old: bool = True):
+    # If auto_lock_old is True, automatically lock rooms older than 30 days
+    locked_count = 0
+    if auto_lock_old:
+        locked_count = db.lock_rooms_older_than_days(30)
+    
+    return {
+        "rooms": db.get_all_rooms(),
+        "auto_locked_count": locked_count
+    }
+
+@app.post("/auto-lock-old-rooms")
+async def auto_lock_old_rooms(days: int = 30):
+    """Manually trigger locking of rooms older than the specified number of days"""
+    locked_count = db.lock_rooms_older_than_days(days)
+    return {
+        "message": f"Auto-locked {locked_count} rooms older than {days} days",
+        "locked_count": locked_count
+    }
 
 @app.delete("/delete_room/{room_name}")
 async def delete_room(room_name: str):
