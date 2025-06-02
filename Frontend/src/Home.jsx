@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import config from './config';
+import RoomPasswordModal from './components/RoomPasswordModal';
 import './Home.css';
 
 function Home() {
@@ -10,6 +11,9 @@ function Home() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
+  const [selectedRoom, setSelectedRoom] = useState(null);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [isTogglingLock, setIsTogglingLock] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -89,6 +93,52 @@ function Home() {
       setError('Failed to delete room. Please try again.');
     }
   };
+  
+  const toggleRoomLock = async (roomName, currentLockState) => {
+    setIsTogglingLock(true);
+    try {
+      const response = await fetch(`${config.apiUrl}/room/${roomName}/lock?locked=${!currentLockState}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update room lock status');
+      }
+
+      // Update the rooms array with the new lock status
+      setRooms(rooms.map(room => 
+        room.room_name === roomName 
+          ? { ...room, is_locked: !currentLockState } 
+          : room
+      ));
+    } catch (err) {
+      setError('Failed to update room lock status. Please try again.');
+    } finally {
+      setIsTogglingLock(false);
+    }
+  };
+  
+  const handleJoinRoom = (room) => {
+    // If room is locked, show password modal
+    if (room.is_locked) {
+      setSelectedRoom(room.room_name);
+      setShowPasswordModal(true);
+    } else {
+      // If room is not locked, navigate directly
+      navigate(`/editor/${room.room_name}`);
+    }
+  };
+  
+  const handlePasswordSuccess = () => {
+    setShowPasswordModal(false);
+    navigate(`/editor/${selectedRoom}`);
+  };
+  
+  const handlePasswordCancel = () => {
+    setShowPasswordModal(false);
+    setSelectedRoom(null);
+  };
 
   if (isLoading) {
     return (
@@ -155,32 +205,55 @@ function Home() {
             .filter(room => room.room_name.toLowerCase().includes(searchTerm.toLowerCase()))
             .map((room) => (
               <div key={room.room_name} className="room-card">
-              <div className="room-name">{room.room_name}</div>
-              <div className="room-meta" style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: 4 }}>
-                Created: {room.created_at ? new Date(room.created_at).toLocaleString() : 'N/A'}
+                <div className="room-name">{room.room_name}</div>
+                <div className="room-meta" style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: 4 }}>
+                  Created: {room.created_at ? new Date(room.created_at).toLocaleString() : 'N/A'}
+                </div>
+                <div className="room-lock-toggle">
+                  <label className="lock-switch">
+                    <input
+                      type="checkbox"
+                      checked={room.is_locked}
+                      onChange={() => toggleRoomLock(room.room_name, room.is_locked)}
+                      disabled={isTogglingLock}
+                    />
+                    <span className="lock-slider">
+                      <span className="lock-status">
+                        {room.is_locked ? 'Locked' : 'Unlocked'}
+                      </span>
+                    </span>
+                  </label>
+                </div>
+                <div className="room-actions">
+                  <button
+                    className="join-button"
+                    onClick={() => handleJoinRoom(room)}
+                    aria-label="Join Room"
+                    title="Join Room"
+                  >
+                    Join
+                  </button>
+                  <button
+                    className="delete-button"
+                    onClick={() => deleteRoom(room.room_name)}
+                    aria-label="Delete Room"
+                    title="Delete Room"
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
-              <div className="room-actions">
-                <button
-                  className="join-button"
-                  onClick={() => navigate(`/editor/${room.room_name}`)}
-                  aria-label="Join Room"
-                  title="Join Room"
-                >
-                  Join
-                </button>
-                <button
-                  className="delete-button"
-                  onClick={() => deleteRoom(room.room_name)}
-                  aria-label="Delete Room"
-                  title="Delete Room"
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          ))
+            ))
         )}
       </div>
+      
+      {showPasswordModal && (
+        <RoomPasswordModal
+          roomName={selectedRoom}
+          onSuccess={handlePasswordSuccess}
+          onCancel={handlePasswordCancel}
+        />
+      )}
     </div>
   );
 }

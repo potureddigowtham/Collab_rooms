@@ -1,7 +1,16 @@
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from typing import Dict, Set
+from typing import Dict, Set, Optional
 from database import Database
+import os
+from pydantic import BaseModel
+
+# Global password for locked rooms
+ROOM_PASSWORD = os.environ.get("ROOM_PASSWORD", "TechPathAi24")
+
+# Password validation model
+class PasswordValidation(BaseModel):
+    password: str
 
 app = FastAPI()
 
@@ -118,3 +127,42 @@ async def delete_admin_content(content_id: int):
     if db.delete_admin_content(content_id):
         return {"message": "Content deleted"}
     raise HTTPException(status_code=404, detail="Content not found")
+
+# Room locking endpoints
+@app.put("/room/{room_name}/lock")
+async def toggle_room_lock(room_name: str, locked: bool):
+    """Toggle the lock status of a room"""
+    room = db.get_room(room_name)
+    if not room:
+        raise HTTPException(status_code=404, detail="Room not found")
+    
+    if db.toggle_room_lock(room_name, locked):
+        return {"message": f"Room {room_name} {'locked' if locked else 'unlocked'}", "locked": locked}
+    raise HTTPException(status_code=500, detail="Failed to update room lock status")
+
+@app.get("/room/{room_name}/locked")
+async def is_room_locked(room_name: str):
+    """Check if a room is locked"""
+    room = db.get_room(room_name)
+    if not room:
+        raise HTTPException(status_code=404, detail="Room not found")
+    
+    is_locked = db.is_room_locked(room_name)
+    return {"locked": is_locked}
+
+@app.post("/room/{room_name}/validate-password")
+async def validate_room_password(room_name: str, validation: PasswordValidation):
+    """Validate the password for a locked room"""
+    room = db.get_room(room_name)
+    if not room:
+        raise HTTPException(status_code=404, detail="Room not found")
+    
+    # Check if room is locked
+    if not db.is_room_locked(room_name):
+        return {"valid": True, "message": "Room is not locked"}
+    
+    # Validate password
+    if validation.password == ROOM_PASSWORD:
+        return {"valid": True, "message": "Password is valid"}
+    else:
+        return {"valid": False, "message": "Invalid password"}

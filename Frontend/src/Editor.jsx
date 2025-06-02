@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
 import AdminPanel from './components/AdminPanel';
+import RoomPasswordModal from './components/RoomPasswordModal';
 import config from './config';
 import './Editor.css';
 
@@ -33,8 +34,48 @@ function CodeEditor() {
   const [currentTime, setCurrentTime] = useState('');
   const [theme, setTheme] = useState('vs-dark');
   const [wordWrap, setWordWrap] = useState('on');
+  const [isRoomLocked, setIsRoomLocked] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [isPasswordValidated, setIsPasswordValidated] = useState(false);
   const socketRef = React.useRef(null);
 
+  // Check if the room is locked when component mounts
+  useEffect(() => {
+    const checkRoomLockStatus = async () => {
+      try {
+        const response = await fetch(`${config.apiUrl}/room/${roomName}/locked`);
+        if (!response.ok) {
+          console.error('Failed to check room lock status');
+          return;
+        }
+        
+        const data = await response.json();
+        setIsRoomLocked(data.locked);
+        
+        // If room is locked and password hasn't been validated yet, show the password modal
+        if (data.locked && !isPasswordValidated) {
+          setShowPasswordModal(true);
+        }
+      } catch (error) {
+        console.error('Error checking room lock status:', error);
+      }
+    };
+    
+    checkRoomLockStatus();
+  }, [roomName, isPasswordValidated]);
+
+  // Handle password validation success
+  const handlePasswordSuccess = () => {
+    setIsPasswordValidated(true);
+    setShowPasswordModal(false);
+  };
+
+  // Handle password modal cancel (go back to rooms)
+  const handlePasswordCancel = () => {
+    setShowPasswordModal(false);
+    navigate('/');
+  };
+  
   // Update time based on selected timezone
   useEffect(() => {
     const updateTime = () => {
@@ -293,14 +334,6 @@ function CodeEditor() {
               hideCursorInOverviewRuler: true,
               extraEditorClassName: 'custom-editor',
               fixedOverflowWidgets: true,
-              scrollbar: {
-                vertical: 'visible',
-                horizontal: 'visible',
-                verticalScrollbarSize: 14,
-                horizontalScrollbarSize: 14,
-                verticalHasArrows: true,
-                scrollByPage: true,
-              },
               viewInfo: {
                 extraEditorHeight: 60,
                 scrollBeyondLastLine: false
@@ -315,6 +348,14 @@ function CodeEditor() {
         onClose={() => setIsAdminPanelOpen(false)}
         onResize={handleAdminPanelResize}
       />
+
+      {showPasswordModal && (
+        <RoomPasswordModal
+          roomName={roomName}
+          onSuccess={handlePasswordSuccess}
+          onCancel={handlePasswordCancel}
+        />
+      )}
     </div>
   );
 }
