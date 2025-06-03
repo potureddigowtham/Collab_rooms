@@ -287,69 +287,101 @@ function CodeEditor() {
             </button>
 
             <div className="timer-container" title="Timer" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '12px' }}>
-              <span style={{ fontSize: '1.2em', fontWeight: 'bold', minWidth: '80px', textAlign: 'center' }}>{Math.floor(timer / 3600).toString().padStart(2, '0')}:
+              <span className="timer-container-val" style={{ fontSize: '1.2em', fontWeight: 'bold', minWidth: '80px', textAlign: 'center', color: '#e0e0e0' }}>{Math.floor(timer / 3600).toString().padStart(2, '0')}:
                 {Math.floor((timer % 3600) / 60).toString().padStart(2, '0')}:
                 {(timer % 60).toString().padStart(2, '0')}
               </span>
               <div className="timer-controls" style={{ display: 'flex', gap: '8px' }}>
                 <button 
-                  className="toolbar-button" 
-                  onClick={startTimer} 
-                  title="Start Timer" 
+                  className="icon-button" 
+                  onClick={startTimer}
+                  title="Start"
                   style={{ 
-                    padding: '6px', 
                     width: '32px', 
-                    height: '32px', 
-                    display: 'flex', 
-                    justifyContent: 'center', 
+                    height: '32px',
+                    borderRadius: '4px',
+                    display: 'flex',
+                    justifyContent: 'center',
                     alignItems: 'center',
-                    borderRadius: '6px',
-                    aspectRatio: '1 / 1'
+                    background: timerRunning ? '#4caf50' : '#2a2a2a',
+                    border: 'none',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
                   }}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                    <path d="M3 2.5v11l10-5.5-10-5.5z"/>
-                  </svg>
+                  {/* Play icon - simple triangle */}
+                  <div style={{
+                    width: 0, 
+                    height: 0, 
+                    borderTop: '8px solid transparent',
+                    borderBottom: '8px solid transparent',
+                    borderLeft: '12px solid #e0e0e0',
+                    marginLeft: '2px'
+                  }}></div>
                 </button>
                 <button 
-                  className="toolbar-button" 
-                  onClick={pauseTimer} 
-                  title="Pause Timer" 
+                  className="icon-button" 
+                  onClick={pauseTimer}
+                  title="Pause"
                   style={{ 
-                    padding: '6px', 
                     width: '32px', 
-                    height: '32px', 
-                    display: 'flex', 
-                    justifyContent: 'center', 
+                    height: '32px',
+                    borderRadius: '4px',
+                    display: 'flex',
+                    justifyContent: 'center',
                     alignItems: 'center',
-                    borderRadius: '6px',
-                    aspectRatio: '1 / 1'
+                    background: !timerRunning && timer > 0 ? '#ff9800' : '#2a2a2a',
+                    border: 'none',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
                   }}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                    <rect x="3" y="2" width="4" height="12"/>
-                    <rect x="9" y="2" width="4" height="12"/>
-                  </svg>
+                  {/* Pause icon - two rectangles */}
+                  <div style={{
+                    display: 'flex',
+                    gap: '4px'
+                  }}>
+                    <div style={{
+                      width: '4px',
+                      height: '16px',
+                      backgroundColor: '#e0e0e0'
+                    }}></div>
+                    <div style={{
+                      width: '4px',
+                      height: '16px',
+                      backgroundColor: '#e0e0e0'
+                    }}></div>
+                  </div>
                 </button>
                 <button 
-                  className="toolbar-button" 
-                  onClick={resetTimer} 
-                  title="Reset Timer" 
+                  className="icon-button" 
+                  onClick={resetTimer}
+                  title="Reset"
                   style={{ 
-                    padding: '6px', 
                     width: '32px', 
-                    height: '32px', 
-                    display: 'flex', 
-                    justifyContent: 'center', 
+                    height: '32px',
+                    borderRadius: '4px',
+                    display: 'flex',
+                    justifyContent: 'center',
                     alignItems: 'center',
-                    borderRadius: '6px',
-                    aspectRatio: '1 / 1'
+                    background: '#2a2a2a',
+                    border: 'none',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
                   }}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                    <path d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
-                    <path d="M8 1v4l2-2"/>
-                  </svg>
+                  {/* Reset icon - simple text symbol that's universally recognized */}
+                  <span style={{
+                    fontSize: '18px', 
+                    color: '#e0e0e0', 
+                    fontWeight: 'bold',
+                    lineHeight: '18px'
+                  }}>
+                    ↺
+                  </span>
                 </button>
               </div>
             </div>
