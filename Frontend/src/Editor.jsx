@@ -25,18 +25,18 @@ function CodeEditor() {
   const [content, setContent] = useState('');
   const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [fontSize, setFontSize] = useState(14);
   const [showMinimap, setShowMinimap] = useState(true);
   const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
   const [editorWidth, setEditorWidth] = useState('100%');
   const [language, setLanguage] = useState('plaintext');
   const [timezone, setTimezone] = useState('UTC');
   const [currentTime, setCurrentTime] = useState('');
-  const [theme, setTheme] = useState('vs-dark');
-  const [wordWrap, setWordWrap] = useState('on');
   const [isRoomLocked, setIsRoomLocked] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [isPasswordValidated, setIsPasswordValidated] = useState(false);
+  const [timer, setTimer] = useState(0);
+  const [timerRunning, setTimerRunning] = useState(false);
+  const timerRef = React.useRef(null);
   const socketRef = React.useRef(null);
 
   // Check if the room is locked when component mounts
@@ -98,6 +98,24 @@ function CodeEditor() {
     return () => clearInterval(interval);
   }, [timezone]);
 
+  // Timer effect
+  useEffect(() => {
+    if (timerRunning) {
+      timerRef.current = setInterval(() => {
+        setTimer((prev) => prev + 1);
+      }, 1000);
+    } else if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+  }, [timerRunning]);
+
   useEffect(() => {
     if (!socketRef.current) {
       socketRef.current = new WebSocket(`${config.wsUrl}/ws/${roomName}`);
@@ -147,24 +165,12 @@ function CodeEditor() {
     sendContentDebounced(value); // Send the value over WebSocket, but debounced
   };
 
-  const handleFontSizeChange = (e) => {
-    setFontSize(Number(e.target.value));
-  };
-
   const handleLanguageChange = (e) => {
     setLanguage(e.target.value);
   };
 
   const handleTimezoneChange = (e) => {
     setTimezone(e.target.value);
-  };
-
-  const handleThemeChange = (e) => {
-    setTheme(e.target.value);
-  };
-
-  const handleWordWrapChange = (e) => {
-    setWordWrap(e.target.value);
   };
 
   const toggleMinimap = () => {
@@ -180,6 +186,19 @@ function CodeEditor() {
     const totalWidth = window.innerWidth;
     const newEditorWidth = totalWidth - newAdminPanelWidth;
     setEditorWidth(`${newEditorWidth}px`);
+  };
+
+  const startTimer = () => {
+    setTimerRunning(true);
+  };
+
+  const pauseTimer = () => {
+    setTimerRunning(false);
+  };
+
+  const resetTimer = () => {
+    setTimerRunning(false);
+    setTimer(0);
   };
 
   if (isLoading) {
@@ -222,18 +241,6 @@ function CodeEditor() {
 
         <div className="editor-content">
           <div className="editor-toolbar">
-            <select 
-              className="toolbar-button" 
-              value={fontSize} 
-              onChange={handleFontSizeChange}
-              title="Font Size"
-            >
-              <option value="12">Small</option>
-              <option value="14">Medium</option>
-              <option value="16">Large</option>
-              <option value="18">Extra Large</option>
-            </select>
-
             <select
               className="toolbar-button"
               value={language}
@@ -258,29 +265,6 @@ function CodeEditor() {
 
             <select
               className="toolbar-button"
-              value={theme}
-              onChange={handleThemeChange}
-              title="Editor Theme"
-            >
-              <option value="vs-dark">Dark</option>
-              <option value="vs-light">Light</option>
-              <option value="hc-black">High Contrast Dark</option>
-              <option value="hc-light">High Contrast Light</option>
-            </select>
-
-            <select
-              className="toolbar-button"
-              value={wordWrap}
-              onChange={handleWordWrapChange}
-              title="Word Wrap"
-            >
-              <option value="on">Wrap Text</option>
-              <option value="off">No Wrap</option>
-              <option value="wordWrapColumn">Wrap Column</option>
-            </select>
-
-            <select
-              className="toolbar-button"
               value={timezone}
               onChange={handleTimezoneChange}
               title="Select Timezone"
@@ -301,45 +285,111 @@ function CodeEditor() {
               </svg>
               {showMinimap ? 'Hide Map' : 'Show Map'}
             </button>
+
+            <div className="timer-container" title="Timer" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '12px' }}>
+              <span style={{ fontSize: '1.2em', fontWeight: 'bold', minWidth: '80px', textAlign: 'center' }}>{Math.floor(timer / 3600).toString().padStart(2, '0')}:
+                {Math.floor((timer % 3600) / 60).toString().padStart(2, '0')}:
+                {(timer % 60).toString().padStart(2, '0')}
+              </span>
+              <div className="timer-controls" style={{ display: 'flex', gap: '8px' }}>
+                <button 
+                  className="toolbar-button" 
+                  onClick={startTimer} 
+                  title="Start Timer" 
+                  style={{ 
+                    padding: '6px', 
+                    width: '32px', 
+                    height: '32px', 
+                    display: 'flex', 
+                    justifyContent: 'center', 
+                    alignItems: 'center',
+                    borderRadius: '6px',
+                    aspectRatio: '1 / 1'
+                  }}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M3 2.5v11l10-5.5-10-5.5z"/>
+                  </svg>
+                </button>
+                <button 
+                  className="toolbar-button" 
+                  onClick={pauseTimer} 
+                  title="Pause Timer" 
+                  style={{ 
+                    padding: '6px', 
+                    width: '32px', 
+                    height: '32px', 
+                    display: 'flex', 
+                    justifyContent: 'center', 
+                    alignItems: 'center',
+                    borderRadius: '6px',
+                    aspectRatio: '1 / 1'
+                  }}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <rect x="3" y="2" width="4" height="12"/>
+                    <rect x="9" y="2" width="4" height="12"/>
+                  </svg>
+                </button>
+                <button 
+                  className="toolbar-button" 
+                  onClick={resetTimer} 
+                  title="Reset Timer" 
+                  style={{ 
+                    padding: '6px', 
+                    width: '32px', 
+                    height: '32px', 
+                    display: 'flex', 
+                    justifyContent: 'center', 
+                    alignItems: 'center',
+                    borderRadius: '6px',
+                    aspectRatio: '1 / 1'
+                  }}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+                    <path d="M8 1v4l2-2"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
           </div>
 
-          <Editor
-            height="100%"
-            defaultLanguage="plaintext"
-            language={language}
-            theme={theme}
-            value={content}
-            onChange={handleEditorChange}
-            options={{
-              minimap: { enabled: showMinimap },
-              fontSize: fontSize,
-              lineNumbers: 'on',
-              scrollBeyondLastLine: false,
-              automaticLayout: true,
-              wordWrap: wordWrap,
-              renderWhitespace: 'selection',
-              padding: { top: 16, bottom: 24 },
-              scrollbar: {
-                vertical: 'visible',
-                horizontal: 'visible',
-                useShadows: false,
-                verticalScrollbarSize: 14,
-                horizontalScrollbarSize: 14,
-                arrowSize: 30,
-                verticalHasArrows: true,
-                verticalArrowSize: 14,
-              },
-              overviewRulerLanes: 0,
-              overviewRulerBorder: false,
-              hideCursorInOverviewRuler: true,
-              extraEditorClassName: 'custom-editor',
-              fixedOverflowWidgets: true,
-              viewInfo: {
-                extraEditorHeight: 60,
-                scrollBeyondLastLine: false
-              }
-            }}
-          />
+            <Editor
+              height="100%"
+              defaultLanguage="plaintext"
+              language={language}
+              theme='vs-dark'
+              value={content}
+              onChange={handleEditorChange}
+              options={{
+                minimap: { enabled: showMinimap },
+                lineNumbers: 'on',
+                scrollBeyondLastLine: false,
+                automaticLayout: true,
+                renderWhitespace: 'selection',
+                padding: { top: 16, bottom: 24 },
+                scrollbar: {
+                  vertical: 'visible',
+                  horizontal: 'visible',
+                  useShadows: false,
+                  verticalScrollbarSize: 14,
+                  horizontalScrollbarSize: 14,
+                  arrowSize: 30,
+                  verticalHasArrows: true,
+                  verticalArrowSize: 14,
+                },
+                overviewRulerLanes: 0,
+                overviewRulerBorder: false,
+                hideCursorInOverviewRuler: true,
+                extraEditorClassName: 'custom-editor',
+                fixedOverflowWidgets: true,
+                viewInfo: {
+                  extraEditorHeight: 60,
+                  scrollBeyondLastLine: false
+                }
+              }}
+            />
         </div>
       </div>
 
