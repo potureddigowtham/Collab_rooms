@@ -36,8 +36,10 @@ function CodeEditor() {
   const [isPasswordValidated, setIsPasswordValidated] = useState(false);
   const [timer, setTimer] = useState(0);
   const [timerRunning, setTimerRunning] = useState(false);
+  const [activeUsers, setActiveUsers] = useState(1); // Add state for active users
   const timerRef = React.useRef(null);
   const socketRef = React.useRef(null);
+  const [wordWrap, setWordWrap] = useState('on');
 
   // Check if the room is locked when component mounts
   useEffect(() => {
@@ -131,7 +133,17 @@ function CodeEditor() {
       };
 
       socketRef.current.onmessage = (event) => {
-        setContent(event.data);
+        try {
+          const data = JSON.parse(event.data);
+          if (data.type === 'content') {
+            setContent(data.content);
+          } else if (data.type === 'users') {
+            setActiveUsers(data.count);
+          }
+        } catch (error) {
+          // If the message is not JSON, treat it as content (for backward compatibility)
+          setContent(event.data);
+        }
       };
 
       socketRef.current.onerror = (error) => {
@@ -201,6 +213,10 @@ function CodeEditor() {
     setTimer(0);
   };
 
+  const handleWordWrapChange = (e) => {
+    setWordWrap(e.target.value);
+  };
+
   if (isLoading) {
     return (
       <div className="editor-container">
@@ -229,6 +245,15 @@ function CodeEditor() {
             </h1>
             <div className={`connection-status ${isConnected ? 'connected' : 'disconnected'}`}>
               {isConnected ? 'Connected' : 'Disconnected'}
+            </div>
+            <div className="active-users" title="Active Users">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+              {activeUsers} user{activeUsers !== 1 ? 's' : ''}
             </div>
           </div>
           <button className="toolbar-button" onClick={handleBack}>
@@ -273,6 +298,17 @@ function CodeEditor() {
               <option value="America/Chicago">CST</option>
               <option value="America/New_York">EST</option>
               <option value="Asia/Kolkata">IST</option>
+            </select>
+
+            <select
+              className="toolbar-button"
+              value={wordWrap}
+              onChange={handleWordWrapChange}
+              title="Word Wrap"
+            >
+              <option value="on">Wrap Text</option>
+              <option value="off">No Wrap</option>
+              <option value="wordWrapColumn">Wrap Column</option>
             </select>
 
             <div className="toolbar-time" title="Current Time">
@@ -399,6 +435,7 @@ function CodeEditor() {
                 lineNumbers: 'on',
                 scrollBeyondLastLine: false,
                 automaticLayout: true,
+                wordWrap: wordWrap,
                 renderWhitespace: 'selection',
                 padding: { top: 16, bottom: 24 },
                 scrollbar: {
