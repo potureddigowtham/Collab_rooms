@@ -4,6 +4,7 @@ from typing import Dict, Set, Optional
 from database import Database
 import os
 from pydantic import BaseModel
+import json
 
 # Global password for locked rooms
 ROOM_PASSWORD = os.environ.get("ROOM_PASSWORD", "TechPathAi24")
@@ -66,6 +67,20 @@ async def delete_room(room_name: str):
         return {"message": "Room deleted"}
     raise HTTPException(status_code=404, detail="Room not found")
 
+async def broadcast_user_count(room_name: str):
+    """Broadcast the current number of users to all clients in a room."""
+    if room_name in active_connections:
+        user_count = len(active_connections[room_name])
+        message = json.dumps({
+            "type": "users",
+            "count": user_count
+        })
+        for client in active_connections[room_name]:
+            try:
+                await client.send_text(message)
+            except:
+                pass  # Ignore failed sends
+
 @app.websocket("/ws/{room_name}")
 async def websocket_endpoint(websocket: WebSocket, room_name: str):
     await websocket.accept()
@@ -84,10 +99,16 @@ async def websocket_endpoint(websocket: WebSocket, room_name: str):
     # Add the new connection to the room's active connections
     active_connections[room_name].add(websocket)
     
+    # Broadcast updated user count
+    await broadcast_user_count(room_name)
+    
     try:
         # Send current content to the new client
         content = db.get_room_content(room_name) or ""
-        await websocket.send_text(content)
+        await websocket.send_text(json.dumps({
+            "type": "content",
+            "content": content
+        }))
         
         while True:
             data = await websocket.receive_text()
@@ -95,11 +116,18 @@ async def websocket_endpoint(websocket: WebSocket, room_name: str):
             db.update_room_content(room_name, data)
             
             # Broadcast to all other clients in the room
+            content_message = json.dumps({
+                "type": "content",
+                "content": data
+            })
             for client in active_connections[room_name]:
                 if client != websocket:
-                    await client.send_text(data)
+                    await client.send_text(content_message)
     except WebSocketDisconnect:
         active_connections[room_name].remove(websocket)
+        # Broadcast updated user count after disconnect
+        await broadcast_user_count(room_name)
+        # Clean up empty rooms from active_connections
         if not active_connections[room_name]:
             del active_connections[room_name]
 

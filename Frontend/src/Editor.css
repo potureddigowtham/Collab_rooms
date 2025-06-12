@@ -82,6 +82,24 @@
   transition: all 0.3s ease;
 }
 
+.active-users {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--editor-success);
+  padding: 0.5rem 1rem;
+  background: rgba(76, 175, 80, 0.1);
+  border-radius: 20px;
+  margin-left: 0.5rem;
+}
+
+.active-users svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+}
+
 .connection-status.connected {
   background: rgba(76, 175, 80, 0.1);
   color: var(--editor-success);
@@ -385,4 +403,4 @@ select.toolbar-button:focus {
 .notepad-button svg {
   width: 24px;
   height: 24px;
-} 
+}
