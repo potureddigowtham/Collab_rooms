@@ -1,0 +1,351 @@
+.admin-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  background-color: var(--editor-bg);
+  border-left: 1px solid var(--editor-border);
+  box-shadow: var(--editor-shadow);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  transition: width 0.3s ease;
+}
+
+.admin-panel-resizer {
+  position: absolute;
+  left: -5px;
+  top: 0;
+  width: 10px;
+  height: 100%;
+  cursor: ew-resize;
+  background: transparent;
+  z-index: 1001;
+}
+
+.admin-panel-header {
+  padding: 1rem;
+  background-color: var(--editor-header-bg);
+  border-bottom: 1px solid var(--editor-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.admin-panel-header h2 {
+  margin: 0;
+  color: var(--editor-text);
+  font-size: 1.2rem;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  color: var(--editor-text-secondary);
+  cursor: pointer;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.3s ease;
+}
+
+.close-button:hover {
+  color: var(--editor-text);
+}
+
+.info-icon {
+  font-size: 1.2rem;
+}
+
+.passcode-section {
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.passcode-section form {
+  width: 100%;
+  max-width: 300px;
+}
+
+.passcode-input {
+  width: 100%;
+  padding: 0.8rem;
+  margin-bottom: 1rem;
+  border: 1px solid var(--editor-border);
+  background-color: var(--editor-header-bg);
+  color: var(--editor-text);
+  border-radius: 4px;
+}
+
+.submit-button {
+  width: 100%;
+  padding: 0.8rem;
+  background-color: var(--editor-accent);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.submit-button:hover {
+  background-color: #0066cc;
+}
+
+.error-message {
+  color: var(--editor-error);
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.content-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.notes-list-view {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.content-actions {
+  padding: 1rem;
+  background-color: var(--editor-header-bg);
+  border-bottom: 1px solid var(--editor-border);
+}
+
+.action-button {
+  width: 100%;
+  padding: 1rem;
+  background-color: var(--editor-accent);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.action-button:hover {
+  background-color: #0066cc;
+}
+
+.notes-list {
+  flex: 1;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.note-item {
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background-color: var(--editor-header-bg);
+  border: 1px solid var(--editor-border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.note-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-color: var(--editor-accent);
+}
+
+.note-item-title {
+  margin: 0 0 0.5rem 0;
+  color: var(--editor-text);
+  font-size: 1.1rem;
+}
+
+.note-item-preview {
+  margin: 0;
+  color: var(--editor-text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.empty-state {
+  text-align: center;
+  color: var(--editor-text-secondary);
+  padding: 2rem;
+  font-size: 1.1rem;
+}
+
+.note-view {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 1rem;
+}
+
+.note-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--editor-border);
+}
+
+.back-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: none;
+  color: var(--editor-text-secondary);
+  cursor: pointer;
+  padding: 0.5rem;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.back-button:hover {
+  color: var(--editor-text);
+}
+
+.back-button svg {
+  width: 20px;
+  height: 20px;
+}
+
+.note-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.note-title {
+  margin: 0 0 1.5rem 0;
+  color: var(--editor-text);
+  font-size: 1.5rem;
+}
+
+.note-content {
+  flex: 1;
+  overflow-y: auto;
+  color: var(--editor-text-secondary);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  padding-right: 1rem;
+}
+
+.content-form {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.form-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--editor-border);
+  position: sticky;
+  top: 0;
+  background-color: var(--editor-bg);
+  z-index: 2;
+}
+
+.form-header h3 {
+  margin: 0;
+  color: var(--editor-text);
+  font-size: 1.2rem;
+}
+
+.content-input {
+  width: 100%;
+  padding: 0.8rem;
+  border: 1px solid var(--editor-border);
+  background-color: var(--editor-header-bg);
+  color: var(--editor-text);
+  border-radius: 4px;
+}
+
+.content-textarea {
+  width: 100%;
+  padding: 0.8rem;
+  border: 1px solid var(--editor-border);
+  background-color: var(--editor-header-bg);
+  color: var(--editor-text);
+  border-radius: 4px;
+  resize: vertical;
+  flex: 1;
+  min-height: 200px;
+  margin-bottom: 1rem;
+}
+
+.form-buttons {
+  display: flex;
+  gap: 1rem;
+  position: sticky;
+  bottom: 0;
+  background-color: var(--editor-bg);
+  padding: 1rem 0;
+  border-top: 1px solid var(--editor-border);
+  z-index: 2;
+}
+
+.form-buttons button {
+  flex: 1;
+  min-height: 40px;
+}
+
+.cancel-button {
+  background-color: transparent;
+  border: 1px solid var(--editor-border);
+  color: var(--editor-text);
+  padding: 0.8rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.cancel-button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.edit-button,
+.delete-button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-left: 0.5rem;
+}
+
+.edit-button {
+  background-color: var(--editor-accent);
+  color: white;
+}
+
+.edit-button:hover {
+  background-color: #0066cc;
+}
+
+.delete-button {
+  background-color: var(--editor-error);
+  color: white;
+}
+
+.delete-button:hover {
+  background-color: #d32f2f;
+} 

@@ -25,3 +25,4 @@ sudo systemctl status collab-rooms-frontend
 # View logs
 sudo journalctl -u collab-rooms-backend -f
 sudo journalctl -u collab-rooms-frontend -f
+
