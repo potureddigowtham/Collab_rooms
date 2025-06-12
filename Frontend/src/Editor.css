@@ -314,6 +314,18 @@ select.toolbar-button:focus {
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+.timer-container-val {
+  padding: 0.35rem 0.7rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  color: var(--editor-text);
+  font-family: monospace;
+  font-size: 0.85rem;
+  min-width: 180px;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
   .editor-header {

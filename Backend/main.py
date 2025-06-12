@@ -1,7 +1,16 @@
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from typing import Dict, Set
+from typing import Dict, Set, Optional
 from database import Database
+import os
+from pydantic import BaseModel
+
+# Global password for locked rooms
+ROOM_PASSWORD = os.environ.get("ROOM_PASSWORD", "TechPathAi24")
+
+# Password validation model
+class PasswordValidation(BaseModel):
+    password: str
 
 app = FastAPI()
 
@@ -27,9 +36,27 @@ async def create_room(room_name: str):
         return {"message": "Room created", "room_name": room_name}
     raise HTTPException(status_code=400, detail="Room already exists")
 
+# Returns a list of rooms with room_name and created_at (latest first)
 @app.get("/rooms")
-async def get_rooms():
-    return {"rooms": db.get_all_rooms()}
+async def get_rooms(auto_lock_old: bool = True):
+    # If auto_lock_old is True, automatically lock rooms older than 30 days
+    locked_count = 0
+    if auto_lock_old:
+        locked_count = db.lock_rooms_older_than_days(30)
+    
+    return {
+        "rooms": db.get_all_rooms(),
+        "auto_locked_count": locked_count
+    }
+
+@app.post("/auto-lock-old-rooms")
+async def auto_lock_old_rooms(days: int = 30):
+    """Manually trigger locking of rooms older than the specified number of days"""
+    locked_count = db.lock_rooms_older_than_days(days)
+    return {
+        "message": f"Auto-locked {locked_count} rooms older than {days} days",
+        "locked_count": locked_count
+    }
 
 @app.delete("/delete_room/{room_name}")
 async def delete_room(room_name: str):
@@ -117,3 +144,42 @@ async def delete_admin_content(content_id: int):
     if db.delete_admin_content(content_id):
         return {"message": "Content deleted"}
     raise HTTPException(status_code=404, detail="Content not found")
+
+# Room locking endpoints
+@app.put("/room/{room_name}/lock")
+async def toggle_room_lock(room_name: str, locked: bool):
+    """Toggle the lock status of a room"""
+    room = db.get_room(room_name)
+    if not room:
+        raise HTTPException(status_code=404, detail="Room not found")
+    
+    if db.toggle_room_lock(room_name, locked):
+        return {"message": f"Room {room_name} {'locked' if locked else 'unlocked'}", "locked": locked}
+    raise HTTPException(status_code=500, detail="Failed to update room lock status")
+
+@app.get("/room/{room_name}/locked")
+async def is_room_locked(room_name: str):
+    """Check if a room is locked"""
+    room = db.get_room(room_name)
+    if not room:
+        raise HTTPException(status_code=404, detail="Room not found")
+    
+    is_locked = db.is_room_locked(room_name)
+    return {"locked": is_locked}
+
+@app.post("/room/{room_name}/validate-password")
+async def validate_room_password(room_name: str, validation: PasswordValidation):
+    """Validate the password for a locked room"""
+    room = db.get_room(room_name)
+    if not room:
+        raise HTTPException(status_code=404, detail="Room not found")
+    
+    # Check if room is locked
+    if not db.is_room_locked(room_name):
+        return {"valid": True, "message": "Room is not locked"}
+    
+    # Validate password
+    if validation.password == ROOM_PASSWORD:
+        return {"valid": True, "message": "Password is valid"}
+    else:
+        return {"valid": False, "message": "Invalid password"}
