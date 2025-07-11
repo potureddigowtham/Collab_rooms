@@ -27,8 +27,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# In-memory storage for active WebSocket connections only
+# In-memory storage for active WebSocket connections and their IDs
 active_connections: Dict[str, Set[WebSocket]] = {}
+client_ids: Dict[WebSocket, str] = {}
+
+import uuid
+
+# Generate unique client ID
+def generate_client_id() -> str:
+    return str(uuid.uuid4())
 
 @app.post("/create_room")
 async def create_room(room_name: str):
@@ -96,11 +103,18 @@ async def websocket_endpoint(websocket: WebSocket, room_name: str):
     if room_name not in active_connections:
         active_connections[room_name] = set()
     
+    # Generate unique client ID for this connection
+    client_id = generate_client_id()
+    client_ids[websocket] = client_id
+
     # Add the new connection to the room's active connections
     active_connections[room_name].add(websocket)
     
     # Broadcast updated user count
     await broadcast_user_count(room_name)
+    
+    # Debug log
+    print(f"New client connected. ID: {client_id}, Room: {room_name}")
     
     try:
         # Send current content to the new client
@@ -112,21 +126,61 @@ async def websocket_endpoint(websocket: WebSocket, room_name: str):
         
         while True:
             data = await websocket.receive_text()
-            # Update content in database
-            db.update_room_content(room_name, data)
-            
-            # Broadcast to all other clients in the room
-            content_message = json.dumps({
-                "type": "content",
-                "content": data
-            })
-            for client in active_connections[room_name]:
-                if client != websocket:
-                    await client.send_text(content_message)
+            try:
+                # Parse message as JSON
+                message = json.loads(data)
+                if isinstance(message, dict) and "type" in message:
+                    if message["type"] in ["selection", "selection_clear"]:
+                        # Handle selection events
+                        message["userId"] = client_ids[websocket]  # Add client ID to message
+                        print(f"Selection event from {client_ids[websocket]}: {message}")  # Debug log
+                        for client in active_connections[room_name]:
+                            if client != websocket:
+                                await client.send_text(json.dumps(message))
+                    else:
+                        # Handle content updates
+                        content = message.get("content", data)
+                        db.update_room_content(room_name, content)
+                        content_message = json.dumps({
+                            "type": "content",
+                            "content": content
+                        })
+                        for client in active_connections[room_name]:
+                            if client != websocket:
+                                await client.send_text(content_message)
+                else:
+                    # Handle non-typed JSON messages as content
+                    db.update_room_content(room_name, data)
+                    content_message = json.dumps({
+                        "type": "content",
+                        "content": data
+                    })
+                    for client in active_connections[room_name]:
+                        if client != websocket:
+                            await client.send_text(content_message)
+            except json.JSONDecodeError:
+                # Handle plain text as content
+                db.update_room_content(room_name, data)
+                content_message = json.dumps({
+                    "type": "content",
+                    "content": data
+                })
+                for client in active_connections[room_name]:
+                    if client != websocket:
+                        await client.send_text(content_message)
     except WebSocketDisconnect:
+        # Clean up client ID
+        if websocket in client_ids:
+            client_id = client_ids[websocket]
+            del client_ids[websocket]
+            print(f"Client disconnected. ID: {client_id}, Room: {room_name}")
+
+        # Remove from active connections
         active_connections[room_name].remove(websocket)
+        
         # Broadcast updated user count after disconnect
         await broadcast_user_count(room_name)
+        
         # Clean up empty rooms from active_connections
         if not active_connections[room_name]:
             del active_connections[room_name]
