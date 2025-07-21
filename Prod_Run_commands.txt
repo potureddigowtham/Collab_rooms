@@ -18,6 +18,10 @@ sudo systemctl stop collab-rooms-frontend
 sudo systemctl restart collab-rooms-backend
 sudo systemctl restart collab-rooms-frontend
 
+# Restart a service
+sudo systemctl start collab-rooms-backend
+sudo systemctl start collab-rooms-frontend
+
 # Check service status
 sudo systemctl status collab-rooms-backend
 sudo systemctl status collab-rooms-frontend
