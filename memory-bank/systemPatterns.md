@@ -43,7 +43,13 @@ flowchart LR
    - Admin content management
    - Timestamp tracking
 
-4. **Component Architecture**
+4. **Real-time Selection Pattern**
+   - Track and broadcast cursor selections
+   - Visual highlighting of remote selections
+   - Client ID management for selection attribution
+   - Selection clearing synchronization
+
+5. **Component Architecture**
    - Monaco Editor integration
    - Room password modal
    - Admin panel

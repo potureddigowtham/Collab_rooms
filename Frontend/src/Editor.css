@@ -344,6 +344,58 @@ select.toolbar-button:focus {
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+/* Remote selection styles */
+.remote-selection {
+  background-color: rgba(250, 166, 26, 0.25) !important;
+  border-radius: 3px !important;
+  border: 1px solid rgba(250, 166, 26, 0.4) !important;
+  z-index: 5 !important;
+  pointer-events: none !important;
+}
+
+.remote-selection-inline {
+  background-color: rgba(250, 166, 26, 0.25) !important;
+  border-radius: 3px !important;
+  z-index: 5 !important;
+  pointer-events: none !important;
+}
+
+/* Local selection styles */
+.monaco-editor .selection-highlight {
+  background-color: rgba(66, 139, 202, 0.3) !important;
+  border-radius: 3px !important;
+}
+
+/* Monaco editor customizations */
+.monaco-editor .selected-text {
+  background-color: rgba(66, 139, 202, 0.3) !important;
+}
+
+.monaco-editor .selected-text.focused {
+  background-color: rgba(66, 139, 202, 0.4) !important;
+}
+
+.monaco-editor .view-overlays .current-line {
+  border: none !important;
+}
+
+/* Ensure proper z-index stacking */
+.monaco-editor .margin-view-overlays .line-numbers {
+  z-index: 1;
+}
+
+.monaco-editor .lines-content {
+  z-index: 2;
+}
+
+.monaco-editor .decorationsOverlay {
+  z-index: 3;
+}
+
+.monaco-editor .cursors-layer {
+  z-index: 4;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
   .editor-header {

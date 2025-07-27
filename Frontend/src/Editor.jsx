@@ -40,6 +40,10 @@ function CodeEditor() {
   const timerRef = React.useRef(null);
   const socketRef = React.useRef(null);
   const [wordWrap, setWordWrap] = useState('on');
+  const [remoteSelections, setRemoteSelections] = useState({});
+  const editorRef = React.useRef(null);
+  const monacoRef = React.useRef(null);
+  const decorationsRef = React.useRef([]);
 
   // Check if the room is locked when component mounts
   useEffect(() => {
@@ -118,46 +122,184 @@ function CodeEditor() {
     };
   }, [timerRunning]);
 
+  // Keep track of decoration IDs
+  const decorationIdsRef = React.useRef([]);
+
+  // Effect to update decorations when remote selections change
+  // Effect to update decorations when remote selections change
+  // Effect to update decorations when selections change
   useEffect(() => {
-    if (!socketRef.current) {
+    if (!editorRef.current || !monacoRef.current) return;
+
+    const editor = editorRef.current;
+    const monaco = monacoRef.current;
+
+    try {
+      // Create decorations for each remote selection
+      const decorations = Object.entries(remoteSelections)
+        .filter(([userId]) => userId !== socketRef.current?.clientId) // Only show other users' selections
+        .map(([userId, selection]) => {
+          try {
+            return {
+              range: new monaco.Range(
+                selection.startLineNumber,
+                selection.startColumn,
+                selection.endLineNumber,
+                selection.endColumn
+              ),
+              options: {
+                className: 'remote-selection',
+                inlineClassName: 'remote-selection-inline',
+                hoverMessage: { value: `Selection by user ${userId}` },
+                stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
+                zIndex: 5,
+                minimap: {
+                  color: 'rgba(250, 166, 26, 0.4)',
+                  position: 2
+                }
+              }
+            };
+          } catch (error) {
+            console.error('Error creating decoration for selection:', selection);
+            return null;
+          }
+        }).filter(Boolean);
+
+      // Update decorations
+      if (decorations.length > 0) {
+        decorationsRef.current = editor.deltaDecorations(
+          decorationsRef.current,
+          decorations
+        );
+      } else {
+        // Clear decorations if none exist
+        decorationsRef.current = editor.deltaDecorations(
+          decorationsRef.current,
+          []
+        );
+      }
+    } catch (error) {
+      console.error('Error updating decorations:', error);
+    }
+  }, [remoteSelections]);
+
+  // Cleanup decorations when component unmounts
+  useEffect(() => {
+    return () => {
+      if (editorRef.current && decorationsRef.current.length > 0) {
+        editorRef.current.deltaDecorations(decorationsRef.current, []);
+        decorationsRef.current = [];
+      }
+    };
+  }, []);
+
+  // WebSocket connection effect
+  useEffect(() => {
+    let reconnectTimer;
+    let connectionTimeout;
+    let isComponentMounted = true;
+
+    const connectWebSocket = () => {
+      if (!isComponentMounted || socketRef.current?.readyState === WebSocket.OPEN) return;
+
+      // Initialize WebSocket connection
       socketRef.current = new WebSocket(`${config.wsUrl}/ws/${roomName}`);
       
+      // Set a connection timeout
+      connectionTimeout = setTimeout(() => {
+        if (!isConnected && socketRef.current && isComponentMounted) {
+          console.log('Connection timeout, retrying...');
+          socketRef.current.close();
+          socketRef.current = null;
+          connectWebSocket();
+        }
+      }, 5000); // Increased timeout to 5 seconds
+
+      // Setup WebSocket event handlers
       socketRef.current.onopen = () => {
+        if (!isComponentMounted) return;
+        clearTimeout(connectionTimeout);
+        
+        // Generate and store client ID
+        const clientId = `user-${Math.random().toString(36).substr(2, 9)}`;
+        socketRef.current.clientId = clientId;
+        
+        // Update state
         setIsConnected(true);
         setIsLoading(false);
+        setRemoteSelections({}); // Clear selections on new connection
       };
 
       socketRef.current.onclose = () => {
+        if (!isComponentMounted) return;
         setIsConnected(false);
         setIsLoading(false);
+        setRemoteSelections({}); // Clear selections on disconnect
+        socketRef.current = null;
+        
+        // Attempt to reconnect after 2 seconds
+        reconnectTimer = setTimeout(connectWebSocket, 2000);
       };
 
       socketRef.current.onmessage = (event) => {
+        if (!isComponentMounted) return;
         try {
           const data = JSON.parse(event.data);
           if (data.type === 'content') {
             setContent(data.content);
           } else if (data.type === 'users') {
             setActiveUsers(data.count);
+          } else if (data.type === 'selection' && data.userId !== socketRef.current?.clientId) {
+            setRemoteSelections(prev => ({
+              ...prev,
+              [data.userId]: {
+                startLineNumber: data.selection.startLineNumber,
+                startColumn: data.selection.startColumn,
+                endLineNumber: data.selection.endLineNumber,
+                endColumn: data.selection.endColumn,
+                userId: data.userId
+              }
+            }));
+          } else if (data.type === 'selection_clear') {
+            setRemoteSelections(prev => {
+              const updated = { ...prev };
+              delete updated[data.userId];
+              return updated;
+            });
           }
         } catch (error) {
-          // If the message is not JSON, treat it as content (for backward compatibility)
-          setContent(event.data);
+          if (isComponentMounted) {
+            setContent(event.data);
+          }
         }
       };
 
       socketRef.current.onerror = (error) => {
+        if (!isComponentMounted) return;
         console.error('WebSocket error:', error);
         setIsConnected(false);
         setIsLoading(false);
+        
+        if (socketRef.current) {
+          socketRef.current.close();
+          socketRef.current = null;
+        }
       };
-    }
+    };
 
+    // Initialize connection
+    connectWebSocket();
+
+    // Cleanup
     return () => {
+      isComponentMounted = false;
+      clearTimeout(reconnectTimer);
+      clearTimeout(connectionTimeout);
       if (socketRef.current) {
         socketRef.current.close();
         socketRef.current = null;
       }
+      setRemoteSelections({});
     };
   }, [roomName]);
 
@@ -290,6 +432,17 @@ function CodeEditor() {
 
             <select
               className="toolbar-button"
+              value={wordWrap}
+              onChange={handleWordWrapChange}
+              title="Word Wrap"
+            >
+              <option value="on">Wrap Text</option>
+              <option value="off">No Wrap</option>
+              <option value="wordWrapColumn">Wrap Column</option>
+            </select>
+
+            <select
+              className="toolbar-button"
               value={timezone}
               onChange={handleTimezoneChange}
               title="Select Timezone"
@@ -300,16 +453,7 @@ function CodeEditor() {
               <option value="Asia/Kolkata">IST</option>
             </select>
 
-            <select
-              className="toolbar-button"
-              value={wordWrap}
-              onChange={handleWordWrapChange}
-              title="Word Wrap"
-            >
-              <option value="on">Wrap Text</option>
-              <option value="off">No Wrap</option>
-              <option value="wordWrapColumn">Wrap Column</option>
-            </select>
+            
 
             <div className="toolbar-time" title="Current Time">
               {currentTime}
@@ -430,6 +574,124 @@ function CodeEditor() {
               theme='vs-dark'
               value={content}
               onChange={handleEditorChange}
+              onMount={(editor, monaco) => {
+                editorRef.current = editor;
+                monacoRef.current = monaco;
+                
+                // Setup model change and selection listeners
+                let decorationTimeout;
+                
+                // Function to update decorations
+                const updateDecorations = () => {
+                  try {
+                    const decorations = Object.entries(remoteSelections).map(([userId, selection]) => ({
+                      range: new monaco.Range(
+                        selection.startLineNumber,
+                        selection.startColumn,
+                        selection.endLineNumber,
+                        selection.endColumn
+                      ),
+                      options: {
+                        className: 'remote-selection',
+                        inlineClassName: 'remote-selection-inline',
+                        hoverMessage: { value: `Selection by user ${userId}` },
+                        stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
+                        zIndex: 100
+                      }
+                    }));
+                    
+                    if (decorations.length > 0) {
+                      decorationsRef.current = editor.deltaDecorations(
+                        decorationsRef.current,
+                        decorations
+                      );
+                    }
+                  } catch (error) {
+                    console.error('Error applying decorations:', error);
+                  }
+                };
+
+                // Handle model changes
+                const modelChangeDisposable = editor.onDidChangeModel(() => {
+                  if (!editor.getModel()) return;
+                  clearTimeout(decorationTimeout);
+                  decorationTimeout = setTimeout(updateDecorations, 100);
+                });
+
+                // Handle selection changes
+                const selectionDisposable = editor.onDidChangeCursorSelection((e) => {
+                  if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) return;
+                  
+                  const selection = e.selection;
+                  const hasSelection = 
+                    selection.startLineNumber !== selection.endLineNumber || 
+                    selection.startColumn !== selection.endColumn;
+                  
+                  try {
+                    if (hasSelection) {
+                      const selectionEvent = {
+                        type: 'selection',
+                        selection: {
+                          startLineNumber: selection.startLineNumber,
+                          startColumn: selection.startColumn,
+                          endLineNumber: selection.endLineNumber,
+                          endColumn: selection.endColumn
+                        },
+                        userId: socketRef.current.clientId
+                      };
+                      
+                      // Update local state immediately for better responsiveness
+                      setRemoteSelections(prev => ({
+                        ...prev,
+                        [socketRef.current.clientId]: {
+                          ...selectionEvent.selection,
+                          userId: socketRef.current.clientId
+                        }
+                      }));
+                      
+                      // Send to other clients
+                      socketRef.current.send(JSON.stringify(selectionEvent));
+                    } else if (e.oldSelections?.some(s => 
+                      s.startLineNumber !== s.endLineNumber || 
+                      s.startColumn !== s.endColumn)) {
+                      // Clear selection if it was previously a selection
+                      const clearEvent = { 
+                        type: 'selection_clear',
+                        userId: socketRef.current.clientId 
+                      };
+                      
+                      // Update local state
+                      setRemoteSelections(prev => {
+                        const newSelections = { ...prev };
+                        delete newSelections[socketRef.current.clientId];
+                        return newSelections;
+                      });
+                      
+                      // Send to other clients
+                      socketRef.current.send(JSON.stringify(clearEvent));
+                    }
+                  } catch (error) {
+                    console.error('Error handling selection change:', error);
+                  }
+                });
+                
+                // Initial decorations update
+                updateDecorations();
+                
+                // Cleanup function
+                return () => {
+                  // Dispose of all disposables
+                  modelChangeDisposable && modelChangeDisposable.dispose();
+                  selectionDisposable && selectionDisposable.dispose();
+                  clearTimeout(decorationTimeout);
+                  
+                  // Clear any existing decorations
+                  if (decorationsRef.current.length > 0) {
+                    editor.deltaDecorations(decorationsRef.current, []);
+                    decorationsRef.current = [];
+                  }
+                };
+              }}
               options={{
                 minimap: { enabled: showMinimap },
                 lineNumbers: 'on',
