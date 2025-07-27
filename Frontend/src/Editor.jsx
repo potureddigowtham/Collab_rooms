@@ -136,37 +136,37 @@ function CodeEditor() {
 
     try {
       // Create decorations for each remote selection
-    const decorations = Object.entries(remoteSelections).map(([userId, selection]) => {
-      try {
-        const isLocalSelection = selection.userId === socketRef.current?.clientId;
-        return {
-          range: new monaco.Range(
-            selection.startLineNumber,
-            selection.startColumn,
-            selection.endLineNumber,
-            selection.endColumn
-          ),
-          options: {
-            className: isLocalSelection ? 'selection-highlight' : 'remote-selection',
-            inlineClassName: isLocalSelection ? undefined : 'remote-selection-inline',
-            hoverMessage: isLocalSelection ? undefined : { value: `Selection by user ${userId}` },
-            stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
-            zIndex: isLocalSelection ? 1 : 5,
-            minimap: {
-              color: isLocalSelection ? 'rgba(66, 139, 202, 0.3)' : 'rgba(250, 166, 26, 0.4)',
-              position: 2
-            }
+      const decorations = Object.entries(remoteSelections)
+        .filter(([userId]) => userId !== socketRef.current?.clientId) // Only show other users' selections
+        .map(([userId, selection]) => {
+          try {
+            return {
+              range: new monaco.Range(
+                selection.startLineNumber,
+                selection.startColumn,
+                selection.endLineNumber,
+                selection.endColumn
+              ),
+              options: {
+                className: 'remote-selection',
+                inlineClassName: 'remote-selection-inline',
+                hoverMessage: { value: `Selection by user ${userId}` },
+                stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
+                zIndex: 5,
+                minimap: {
+                  color: 'rgba(250, 166, 26, 0.4)',
+                  position: 2
+                }
+              }
+            };
+          } catch (error) {
+            console.error('Error creating decoration for selection:', selection);
+            return null;
           }
-        };
-      } catch (error) {
-        console.error('Error creating decoration for selection:', selection);
-        return null;
-      }
-    }).filter(Boolean);
+        }).filter(Boolean);
 
       // Update decorations
       if (decorations.length > 0) {
-        console.log('Applying decorations:', decorations);
         decorationsRef.current = editor.deltaDecorations(
           decorationsRef.current,
           decorations
@@ -197,25 +197,27 @@ function CodeEditor() {
   useEffect(() => {
     let reconnectTimer;
     let connectionTimeout;
+    let isComponentMounted = true;
 
     const connectWebSocket = () => {
-      if (socketRef.current) return;
+      if (!isComponentMounted || socketRef.current?.readyState === WebSocket.OPEN) return;
 
       // Initialize WebSocket connection
       socketRef.current = new WebSocket(`${config.wsUrl}/ws/${roomName}`);
       
       // Set a connection timeout
       connectionTimeout = setTimeout(() => {
-        if (!isConnected && socketRef.current) {
+        if (!isConnected && socketRef.current && isComponentMounted) {
           console.log('Connection timeout, retrying...');
           socketRef.current.close();
           socketRef.current = null;
           connectWebSocket();
         }
-      }, 300); // 300ms timeout
+      }, 5000); // Increased timeout to 5 seconds
 
       // Setup WebSocket event handlers
       socketRef.current.onopen = () => {
+        if (!isComponentMounted) return;
         clearTimeout(connectionTimeout);
         
         // Generate and store client ID
@@ -226,29 +228,28 @@ function CodeEditor() {
         setIsConnected(true);
         setIsLoading(false);
         setRemoteSelections({}); // Clear selections on new connection
-        console.log('WebSocket connected, clientId:', clientId);
       };
 
       socketRef.current.onclose = () => {
+        if (!isComponentMounted) return;
         setIsConnected(false);
         setIsLoading(false);
         setRemoteSelections({}); // Clear selections on disconnect
-        console.log('WebSocket closed, attempting reconnect...');
         socketRef.current = null;
         
-        // Attempt to reconnect after 1 second
-        reconnectTimer = setTimeout(connectWebSocket, 1000);
+        // Attempt to reconnect after 2 seconds
+        reconnectTimer = setTimeout(connectWebSocket, 2000);
       };
 
       socketRef.current.onmessage = (event) => {
+        if (!isComponentMounted) return;
         try {
           const data = JSON.parse(event.data);
           if (data.type === 'content') {
             setContent(data.content);
           } else if (data.type === 'users') {
             setActiveUsers(data.count);
-          } else if (data.type === 'selection') {
-            console.log('Received selection:', data);
+          } else if (data.type === 'selection' && data.userId !== socketRef.current?.clientId) {
             setRemoteSelections(prev => ({
               ...prev,
               [data.userId]: {
@@ -260,7 +261,6 @@ function CodeEditor() {
               }
             }));
           } else if (data.type === 'selection_clear') {
-            console.log('Received selection clear:', data);
             setRemoteSelections(prev => {
               const updated = { ...prev };
               delete updated[data.userId];
@@ -268,17 +268,18 @@ function CodeEditor() {
             });
           }
         } catch (error) {
-          // If the message is not JSON, treat it as content (for backward compatibility)
-          setContent(event.data);
+          if (isComponentMounted) {
+            setContent(event.data);
+          }
         }
       };
 
       socketRef.current.onerror = (error) => {
+        if (!isComponentMounted) return;
         console.error('WebSocket error:', error);
         setIsConnected(false);
         setIsLoading(false);
         
-        // Close the connection on error to trigger reconnect
         if (socketRef.current) {
           socketRef.current.close();
           socketRef.current = null;
@@ -291,6 +292,7 @@ function CodeEditor() {
 
     // Cleanup
     return () => {
+      isComponentMounted = false;
       clearTimeout(reconnectTimer);
       clearTimeout(connectionTimeout);
       if (socketRef.current) {
@@ -298,12 +300,6 @@ function CodeEditor() {
         socketRef.current = null;
       }
       setRemoteSelections({});
-      
-      // Clear decorations
-      if (editorRef.current && decorationIdsRef.current.length > 0) {
-        editorRef.current.deltaDecorations(decorationIdsRef.current, []);
-        decorationIdsRef.current = [];
-      }
     };
   }, [roomName]);
 
