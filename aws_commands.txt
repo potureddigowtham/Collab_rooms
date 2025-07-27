@@ -1,2 +1,5 @@
 ssh -i collab_app_key.pem ec2-user@3.90.206.40
 
+copy db file to local
+scp -i collab_app_key.pem ec2-user@3.90.206.40:/home/ec2-user/Collab_rooms/Backend/rooms.db ./rooms.db
+
