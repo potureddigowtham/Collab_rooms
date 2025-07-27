@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
 import AdminPanel from './components/AdminPanel';
+import InterviewNotesPanel from './components/InterviewNotesPanel';
 import RoomPasswordModal from './components/RoomPasswordModal';
 import config from './config';
 import './Editor.css';
@@ -19,6 +20,38 @@ function debounce(func, wait) {
   };
 }
 
+// Create a separate TimeDisplay component
+function TimeDisplay({ timezone }) {
+  const [currentTime, setCurrentTime] = useState('');
+
+  useEffect(() => {
+    const updateTime = () => {
+      const options = {
+        timeZone: timezone,
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      };
+      const time = new Date().toLocaleString('en-US', options);
+      setCurrentTime(time);
+    };
+
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+
+    return () => clearInterval(interval);
+  }, [timezone]);
+
+  return (
+    <div className="toolbar-time" title="Current Time">
+      {currentTime}
+    </div>
+  );
+}
+
 function CodeEditor() {
   const { roomName } = useParams();
   const navigate = useNavigate();
@@ -27,10 +60,10 @@ function CodeEditor() {
   const [isLoading, setIsLoading] = useState(true);
   const [showMinimap, setShowMinimap] = useState(true);
   const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
+  const [isInterviewNotesPanelOpen, setIsInterviewNotesPanelOpen] = useState(false);
   const [editorWidth, setEditorWidth] = useState('100%');
   const [language, setLanguage] = useState('plaintext');
   const [timezone, setTimezone] = useState('UTC');
-  const [currentTime, setCurrentTime] = useState('');
   const [isRoomLocked, setIsRoomLocked] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [isPasswordValidated, setIsPasswordValidated] = useState(false);
@@ -82,28 +115,6 @@ function CodeEditor() {
     navigate('/');
   };
   
-  // Update time based on selected timezone
-  useEffect(() => {
-    const updateTime = () => {
-      const options = {
-        timeZone: timezone,
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-      };
-      const time = new Date().toLocaleString('en-US', options);
-      setCurrentTime(time);
-    };
-
-    updateTime();
-    const interval = setInterval(updateTime, 1000);
-
-    return () => clearInterval(interval);
-  }, [timezone]);
-
   // Timer effect
   useEffect(() => {
     if (timerRunning) {
@@ -342,6 +353,40 @@ function CodeEditor() {
     setEditorWidth(`${newEditorWidth}px`);
   };
 
+  const handleInterviewNotesPanelResize = (newInterviewPanelWidth) => {
+    // Calculate editor width as remaining space
+    const totalWidth = window.innerWidth;
+    const newEditorWidth = totalWidth - newInterviewPanelWidth;
+    setEditorWidth(`${newEditorWidth}px`);
+  };
+
+  const toggleAdminPanel = () => {
+    if (isInterviewNotesPanelOpen) {
+      setIsInterviewNotesPanelOpen(false);
+    }
+    setIsAdminPanelOpen(!isAdminPanelOpen);
+  };
+
+  const toggleInterviewNotesPanel = () => {
+    if (isAdminPanelOpen) {
+      setIsAdminPanelOpen(false);
+    }
+    setIsInterviewNotesPanelOpen(!isInterviewNotesPanelOpen);
+  };
+
+  // Update editor width when panels are toggled
+  useEffect(() => {
+    const totalWidth = window.innerWidth;
+    let occupiedWidth = 0;
+    
+    // Since only one panel can be open at a time
+    if (isAdminPanelOpen || isInterviewNotesPanelOpen) {
+      occupiedWidth = 400;
+    }
+    
+    setEditorWidth(`${totalWidth - occupiedWidth}px`);
+  }, [isAdminPanelOpen, isInterviewNotesPanelOpen]);
+
   const startTimer = () => {
     setTimerRunning(true);
   };
@@ -373,12 +418,22 @@ function CodeEditor() {
         <div className="editor-header">
           <div className="editor-header-left">
             <button 
-              className="notepad-button" 
-              onClick={() => setIsAdminPanelOpen(!isAdminPanelOpen)}
+              className={`notepad-button ${isAdminPanelOpen ? 'active' : ''}`}
+              onClick={toggleAdminPanel}
               title="Toggle Admin Panel"
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="24" height="24">
                 <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+              </svg>
+            </button>
+            <button 
+              className={`notepad-button ${isInterviewNotesPanelOpen ? 'active' : ''}`}
+              onClick={toggleInterviewNotesPanel}
+              title="Toggle Interview Notes"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="24" height="24">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
               </svg>
             </button>
             <h1>
@@ -455,9 +510,7 @@ function CodeEditor() {
 
             
 
-            <div className="toolbar-time" title="Current Time">
-              {currentTime}
-            </div>
+            <TimeDisplay timezone={timezone} />
 
             <button className="toolbar-button" onClick={toggleMinimap} title="Toggle Minimap">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -567,168 +620,178 @@ function CodeEditor() {
             </div>
           </div>
 
-            <Editor
-              height="100%"
-              defaultLanguage="plaintext"
-              language={language}
-              theme='vs-dark'
-              value={content}
-              onChange={handleEditorChange}
-              onMount={(editor, monaco) => {
-                editorRef.current = editor;
-                monacoRef.current = monaco;
+          <Editor
+            height="100%"
+            defaultLanguage="plaintext"
+            language={language}
+            theme='vs-dark'
+            value={content}
+            onChange={handleEditorChange}
+            onMount={(editor, monaco) => {
+              editorRef.current = editor;
+              monacoRef.current = monaco;
+              
+              // Setup model change and selection listeners
+              let decorationTimeout;
+              
+              // Function to update decorations
+              const updateDecorations = () => {
+                try {
+                  const decorations = Object.entries(remoteSelections).map(([userId, selection]) => ({
+                    range: new monaco.Range(
+                      selection.startLineNumber,
+                      selection.startColumn,
+                      selection.endLineNumber,
+                      selection.endColumn
+                    ),
+                    options: {
+                      className: 'remote-selection',
+                      inlineClassName: 'remote-selection-inline',
+                      hoverMessage: { value: `Selection by user ${userId}` },
+                      stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
+                      zIndex: 100
+                    }
+                  }));
+                  
+                  if (decorations.length > 0) {
+                    decorationsRef.current = editor.deltaDecorations(
+                      decorationsRef.current,
+                      decorations
+                    );
+                  }
+                } catch (error) {
+                  console.error('Error applying decorations:', error);
+                }
+              };
+
+              // Handle model changes
+              const modelChangeDisposable = editor.onDidChangeModel(() => {
+                if (!editor.getModel()) return;
+                clearTimeout(decorationTimeout);
+                decorationTimeout = setTimeout(updateDecorations, 100);
+              });
+
+              // Handle selection changes
+              const selectionDisposable = editor.onDidChangeCursorSelection((e) => {
+                if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) return;
                 
-                // Setup model change and selection listeners
-                let decorationTimeout;
+                const selection = e.selection;
+                const hasSelection = 
+                  selection.startLineNumber !== selection.endLineNumber || 
+                  selection.startColumn !== selection.endColumn;
                 
-                // Function to update decorations
-                const updateDecorations = () => {
-                  try {
-                    const decorations = Object.entries(remoteSelections).map(([userId, selection]) => ({
-                      range: new monaco.Range(
-                        selection.startLineNumber,
-                        selection.startColumn,
-                        selection.endLineNumber,
-                        selection.endColumn
-                      ),
-                      options: {
-                        className: 'remote-selection',
-                        inlineClassName: 'remote-selection-inline',
-                        hoverMessage: { value: `Selection by user ${userId}` },
-                        stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
-                        zIndex: 100
+                try {
+                  if (hasSelection) {
+                    const selectionEvent = {
+                      type: 'selection',
+                      selection: {
+                        startLineNumber: selection.startLineNumber,
+                        startColumn: selection.startColumn,
+                        endLineNumber: selection.endLineNumber,
+                        endColumn: selection.endColumn
+                      },
+                      userId: socketRef.current.clientId
+                    };
+                    
+                    // Update local state immediately for better responsiveness
+                    setRemoteSelections(prev => ({
+                      ...prev,
+                      [socketRef.current.clientId]: {
+                        ...selectionEvent.selection,
+                        userId: socketRef.current.clientId
                       }
                     }));
                     
-                    if (decorations.length > 0) {
-                      decorationsRef.current = editor.deltaDecorations(
-                        decorationsRef.current,
-                        decorations
-                      );
-                    }
-                  } catch (error) {
-                    console.error('Error applying decorations:', error);
+                    // Send to other clients
+                    socketRef.current.send(JSON.stringify(selectionEvent));
+                  } else if (e.oldSelections?.some(s => 
+                    s.startLineNumber !== s.endLineNumber || 
+                    s.startColumn !== s.endColumn)) {
+                    // Clear selection if it was previously a selection
+                    const clearEvent = { 
+                      type: 'selection_clear',
+                      userId: socketRef.current.clientId 
+                    };
+                    
+                    // Update local state
+                    setRemoteSelections(prev => {
+                      const newSelections = { ...prev };
+                      delete newSelections[socketRef.current.clientId];
+                      return newSelections;
+                    });
+                    
+                    // Send to other clients
+                    socketRef.current.send(JSON.stringify(clearEvent));
                   }
-                };
-
-                // Handle model changes
-                const modelChangeDisposable = editor.onDidChangeModel(() => {
-                  if (!editor.getModel()) return;
-                  clearTimeout(decorationTimeout);
-                  decorationTimeout = setTimeout(updateDecorations, 100);
-                });
-
-                // Handle selection changes
-                const selectionDisposable = editor.onDidChangeCursorSelection((e) => {
-                  if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) return;
-                  
-                  const selection = e.selection;
-                  const hasSelection = 
-                    selection.startLineNumber !== selection.endLineNumber || 
-                    selection.startColumn !== selection.endColumn;
-                  
-                  try {
-                    if (hasSelection) {
-                      const selectionEvent = {
-                        type: 'selection',
-                        selection: {
-                          startLineNumber: selection.startLineNumber,
-                          startColumn: selection.startColumn,
-                          endLineNumber: selection.endLineNumber,
-                          endColumn: selection.endColumn
-                        },
-                        userId: socketRef.current.clientId
-                      };
-                      
-                      // Update local state immediately for better responsiveness
-                      setRemoteSelections(prev => ({
-                        ...prev,
-                        [socketRef.current.clientId]: {
-                          ...selectionEvent.selection,
-                          userId: socketRef.current.clientId
-                        }
-                      }));
-                      
-                      // Send to other clients
-                      socketRef.current.send(JSON.stringify(selectionEvent));
-                    } else if (e.oldSelections?.some(s => 
-                      s.startLineNumber !== s.endLineNumber || 
-                      s.startColumn !== s.endColumn)) {
-                      // Clear selection if it was previously a selection
-                      const clearEvent = { 
-                        type: 'selection_clear',
-                        userId: socketRef.current.clientId 
-                      };
-                      
-                      // Update local state
-                      setRemoteSelections(prev => {
-                        const newSelections = { ...prev };
-                        delete newSelections[socketRef.current.clientId];
-                        return newSelections;
-                      });
-                      
-                      // Send to other clients
-                      socketRef.current.send(JSON.stringify(clearEvent));
-                    }
-                  } catch (error) {
-                    console.error('Error handling selection change:', error);
-                  }
-                });
-                
-                // Initial decorations update
-                updateDecorations();
-                
-                // Cleanup function
-                return () => {
-                  // Dispose of all disposables
-                  modelChangeDisposable && modelChangeDisposable.dispose();
-                  selectionDisposable && selectionDisposable.dispose();
-                  clearTimeout(decorationTimeout);
-                  
-                  // Clear any existing decorations
-                  if (decorationsRef.current.length > 0) {
-                    editor.deltaDecorations(decorationsRef.current, []);
-                    decorationsRef.current = [];
-                  }
-                };
-              }}
-              options={{
-                minimap: { enabled: showMinimap },
-                lineNumbers: 'on',
-                scrollBeyondLastLine: false,
-                automaticLayout: true,
-                wordWrap: wordWrap,
-                renderWhitespace: 'selection',
-                padding: { top: 16, bottom: 24 },
-                scrollbar: {
-                  vertical: 'visible',
-                  horizontal: 'visible',
-                  useShadows: false,
-                  verticalScrollbarSize: 14,
-                  horizontalScrollbarSize: 14,
-                  arrowSize: 30,
-                  verticalHasArrows: true,
-                  verticalArrowSize: 14,
-                },
-                overviewRulerLanes: 0,
-                overviewRulerBorder: false,
-                hideCursorInOverviewRuler: true,
-                extraEditorClassName: 'custom-editor',
-                fixedOverflowWidgets: true,
-                viewInfo: {
-                  extraEditorHeight: 60,
-                  scrollBeyondLastLine: false
+                } catch (error) {
+                  console.error('Error handling selection change:', error);
                 }
-              }}
-            />
+              });
+              
+              // Initial decorations update
+              updateDecorations();
+              
+              // Cleanup function
+              return () => {
+                // Dispose of all disposables
+                modelChangeDisposable && modelChangeDisposable.dispose();
+                selectionDisposable && selectionDisposable.dispose();
+                clearTimeout(decorationTimeout);
+                
+                // Clear any existing decorations
+                if (decorationsRef.current.length > 0) {
+                  editor.deltaDecorations(decorationsRef.current, []);
+                  decorationsRef.current = [];
+                }
+              };
+            }}
+            options={{
+              minimap: { enabled: showMinimap },
+              lineNumbers: 'on',
+              scrollBeyondLastLine: false,
+              automaticLayout: true,
+              wordWrap: wordWrap,
+              renderWhitespace: 'selection',
+              padding: { top: 16, bottom: 24 },
+              scrollbar: {
+                vertical: 'visible',
+                horizontal: 'visible',
+                useShadows: false,
+                verticalScrollbarSize: 14,
+                horizontalScrollbarSize: 14,
+                arrowSize: 30,
+                verticalHasArrows: true,
+                verticalArrowSize: 14,
+              },
+              overviewRulerLanes: 0,
+              overviewRulerBorder: false,
+              hideCursorInOverviewRuler: true,
+              extraEditorClassName: 'custom-editor',
+              fixedOverflowWidgets: true,
+              viewInfo: {
+                extraEditorHeight: 60,
+                scrollBeyondLastLine: false
+              }
+            }}
+          />
         </div>
       </div>
 
-      <AdminPanel 
-        isOpen={isAdminPanelOpen} 
-        onClose={() => setIsAdminPanelOpen(false)}
-        onResize={handleAdminPanelResize}
-      />
+      <div className="panels-container">
+        <AdminPanel 
+          isOpen={isAdminPanelOpen} 
+          onClose={() => setIsAdminPanelOpen(false)}
+          onResize={handleAdminPanelResize}
+        />
+
+        <InterviewNotesPanel
+          isOpen={isInterviewNotesPanelOpen}
+          onClose={() => setIsInterviewNotesPanelOpen(false)}
+          onResize={handleInterviewNotesPanelResize}
+          roomName={roomName}
+          isAdminOpen={false} // Since we no longer support both panels being open
+        />
+      </div>
 
       {showPasswordModal && (
         <RoomPasswordModal

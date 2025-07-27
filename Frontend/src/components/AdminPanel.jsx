@@ -28,14 +28,6 @@ function AdminPanel({ isOpen, onClose, onResize }) {
     }
   }, [isAuthenticated]);
 
-  useEffect(() => {
-    if (isOpen) {
-      onResize(panelWidth);
-    } else {
-      onResize(0);
-    }
-  }, [panelWidth, isOpen, onResize]);
-
   const fetchContents = async () => {
     try {
       const response = await fetch(`${config.apiUrl}/admin/content`);
@@ -141,23 +133,8 @@ function AdminPanel({ isOpen, onClose, onResize }) {
       const newWidth = windowWidth - e.clientX;
       const clampedWidth = Math.max(300, Math.min(800, newWidth));
       setPanelWidth(clampedWidth);
+      onResize(clampedWidth); // Call onResize immediately during resize
     }
-  };
-
-  const startEdit = (content) => {
-    setEditForm({ title: content.title, content: content.content });
-    setMode(MODES.EDIT);
-  };
-
-  const startCreate = () => {
-    setEditForm({ title: '', content: '' });
-    setMode(MODES.CREATE);
-    setSelectedContent(null);
-  };
-
-  const goBack = () => {
-    setMode(MODES.VIEW_LIST);
-    setSelectedContent(null);
   };
 
   useEffect(() => {
@@ -170,6 +147,15 @@ function AdminPanel({ isOpen, onClose, onResize }) {
       document.removeEventListener('mouseup', stopResizing);
     };
   }, [isResizing]);
+
+  // Initial resize effect
+  useEffect(() => {
+    if (isOpen) {
+      onResize(panelWidth); // Call onResize when panel opens
+    } else {
+      onResize(0);
+    }
+  }, [isOpen, panelWidth, onResize]);
 
   if (!isOpen) return null;
 
@@ -273,11 +259,26 @@ function AdminPanel({ isOpen, onClose, onResize }) {
     </div>
   );
 
+  const startEdit = (content) => {
+    setEditForm({ title: content.title, content: content.content });
+    setMode(MODES.EDIT);
+  };
+
+  const startCreate = () => {
+    setEditForm({ title: '', content: '' });
+    setMode(MODES.CREATE);
+    setSelectedContent(null);
+  };
+
+  const goBack = () => {
+    setMode(MODES.VIEW_LIST);
+    setSelectedContent(null);
+  };
+
   return (
     <div 
       className="admin-panel" 
       style={{ width: `${panelWidth}px` }}
-      onMouseMove={handleResize}
     >
       <div className="admin-panel-resizer" onMouseDown={startResizing} />
       
