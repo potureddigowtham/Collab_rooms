@@ -8,9 +8,16 @@ import json
 
 # Global password for locked rooms
 ROOM_PASSWORD = os.environ.get("ROOM_PASSWORD", "TechPathAi24")
+# Global password for interview notes
+INTERVIEW_NOTES_PASSWORD = "meet123"
 
 # Password validation model
 class PasswordValidation(BaseModel):
+    password: str
+
+# Interview notes model
+class InterviewNotesUpdate(BaseModel):
+    content: str
     password: str
 
 app = FastAPI()
@@ -262,6 +269,55 @@ async def validate_room_password(room_name: str, validation: PasswordValidation)
     
     # Validate password
     if validation.password == ROOM_PASSWORD:
+        return {"valid": True, "message": "Password is valid"}
+    else:
+        return {"valid": False, "message": "Invalid password"}
+
+# Interview notes endpoints
+@app.get("/interview-notes/{room_name}")
+async def get_interview_notes(room_name: str):
+    """Get interview notes for a specific room"""
+    room = db.get_room(room_name)
+    if not room:
+        raise HTTPException(status_code=404, detail="Room not found")
+    
+    notes = db.get_interview_notes(room_name)
+    return {"notes": notes}
+
+@app.post("/interview-notes/{room_name}")
+async def create_or_update_interview_notes(room_name: str, notes: InterviewNotesUpdate):
+    """Create or update interview notes for a room"""
+    # Validate password
+    if notes.password != INTERVIEW_NOTES_PASSWORD:
+        raise HTTPException(status_code=401, detail="Invalid password")
+
+    room = db.get_room(room_name)
+    if not room:
+        raise HTTPException(status_code=404, detail="Room not found")
+    
+    if db.create_or_update_interview_notes(room_name, notes.content):
+        return {"message": "Notes updated successfully"}
+    raise HTTPException(status_code=500, detail="Failed to update notes")
+
+@app.delete("/interview-notes/{room_name}")
+async def delete_interview_notes(room_name: str, password: str):
+    """Delete interview notes for a room"""
+    # Validate password
+    if password != INTERVIEW_NOTES_PASSWORD:
+        raise HTTPException(status_code=401, detail="Invalid password")
+
+    room = db.get_room(room_name)
+    if not room:
+        raise HTTPException(status_code=404, detail="Room not found")
+    
+    if db.delete_interview_notes(room_name):
+        return {"message": "Notes deleted successfully"}
+    raise HTTPException(status_code=404, detail="Notes not found")
+
+@app.post("/interview-notes/validate-password")
+async def validate_interview_notes_password(validation: PasswordValidation):
+    """Validate the password for interview notes"""
+    if validation.password == INTERVIEW_NOTES_PASSWORD:
         return {"valid": True, "message": "Password is valid"}
     else:
         return {"valid": False, "message": "Invalid password"}

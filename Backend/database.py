@@ -33,6 +33,7 @@ class Database:
                 # Column doesn't exist, add it
                 print("Adding 'is_locked' column to rooms table")
                 cursor.execute("ALTER TABLE rooms ADD COLUMN is_locked BOOLEAN DEFAULT 0")
+
             # Create admin_content table
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS admin_content (
@@ -41,6 +42,18 @@ class Database:
                     content TEXT NOT NULL,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+
+            # Create interview_notes table
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS interview_notes (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    room_name TEXT NOT NULL,
+                    content TEXT NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (room_name) REFERENCES rooms (room_name) ON DELETE CASCADE
                 )
             ''')
             conn.commit()
@@ -188,3 +201,52 @@ class Database:
             )
             conn.commit()
             return cursor.rowcount
+
+    def get_interview_notes(self, room_name: str) -> Optional[dict]:
+        """Get interview notes for a specific room"""
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT * FROM interview_notes WHERE room_name = ?",
+                (room_name,)
+            )
+            row = cursor.fetchone()
+            return dict(row) if row else None
+
+    def create_or_update_interview_notes(self, room_name: str, content: str) -> bool:
+        """Create or update interview notes for a room"""
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            # Try to update existing notes first
+            cursor.execute(
+                """
+                UPDATE interview_notes 
+                SET content = ?, updated_at = CURRENT_TIMESTAMP 
+                WHERE room_name = ?
+                """,
+                (content, room_name)
+            )
+            
+            if cursor.rowcount == 0:
+                # If no existing notes, create new ones
+                cursor.execute(
+                    """
+                    INSERT INTO interview_notes (room_name, content)
+                    VALUES (?, ?)
+                    """,
+                    (room_name, content)
+                )
+            
+            conn.commit()
+            return True
+
+    def delete_interview_notes(self, room_name: str) -> bool:
+        """Delete interview notes for a room"""
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "DELETE FROM interview_notes WHERE room_name = ?",
+                (room_name,)
+            )
+            conn.commit()
+            return cursor.rowcount > 0

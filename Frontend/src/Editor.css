@@ -29,7 +29,8 @@
   display: flex;
   flex-direction: column;
   transition: width 0.3s ease;
-  min-width: 50%;
+  min-width: 300px;
+  flex-grow: 1;
 }
 
 .editor-header {
@@ -445,6 +446,7 @@ select.toolbar-button:focus {
   justify-content: center;
   transition: all 0.3s ease;
   border-radius: 4px;
+  position: relative;
 }
 
 .notepad-button:hover {
@@ -455,4 +457,45 @@ select.toolbar-button:focus {
 .notepad-button svg {
   width: 24px;
   height: 24px;
+}
+
+.notepad-button + .notepad-button {
+  margin-left: 0.5rem;
+}
+
+.notepad-button.active {
+  color: var(--editor-accent);
+  background-color: rgba(0, 122, 204, 0.1);
+}
+
+/* Panel container styles */
+.panels-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  width: auto;
+}
+
+/* Ensure proper stacking of panels */
+.admin-panel {
+  height: 100%;
+  flex-shrink: 0;
+}
+
+.interview-notes-panel {
+  height: 100%;
+  flex-shrink: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .notepad-button {
+    padding: 0.3rem;
+  }
+
+  .notepad-button svg {
+    width: 20px;
+    height: 20px;
+  }
 }

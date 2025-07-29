@@ -26,6 +26,7 @@
 - Modern React application with component-based architecture
 - Real-time communication via WebSocket
 - Monaco editor integration for code editing
+- Collaborative text highlighting with real-time synchronization
 - Responsive design with CSS
 
 ### Backend Structure

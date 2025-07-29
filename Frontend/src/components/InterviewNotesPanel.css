@@ -1,0 +1,152 @@
+.interview-notes-panel {
+  height: 100vh;
+  width: 400px;
+  background-color: var(--editor-bg);
+  border-left: 1px solid var(--editor-border);
+  box-shadow: var(--editor-shadow);
+  display: flex;
+  flex-direction: column;
+  transition: width 0.3s ease;
+}
+
+.interview-notes-resizer-vertical {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -5px;
+  height: 10px;
+  cursor: ns-resize;
+  background: transparent;
+  z-index: 1001;
+}
+
+.interview-notes-resizer-horizontal {
+  position: absolute;
+  left: -5px;
+  top: 0;
+  width: 10px;
+  height: 100%;
+  cursor: ew-resize;
+  background: transparent;
+  z-index: 1001;
+}
+
+.interview-notes-header {
+  padding: 1rem;
+  background-color: var(--editor-header-bg);
+  border-bottom: 1px solid var(--editor-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.interview-notes-header h2 {
+  margin: 0;
+  color: var(--editor-text);
+  font-size: 1.2rem;
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.save-button {
+  padding: 0.5rem 1rem;
+  background-color: var(--editor-accent);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.save-button:hover {
+  background-color: #0066cc;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  color: var(--editor-text-secondary);
+  cursor: pointer;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.3s ease;
+}
+
+.close-button:hover {
+  color: var(--editor-text);
+}
+
+.close-icon {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.passcode-section {
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.passcode-section form {
+  width: 100%;
+  max-width: 300px;
+}
+
+.passcode-input {
+  width: 100%;
+  padding: 0.8rem;
+  margin-bottom: 1rem;
+  border: 1px solid var(--editor-border);
+  background-color: var(--editor-header-bg);
+  color: var(--editor-text);
+  border-radius: 4px;
+}
+
+.submit-button {
+  width: 100%;
+  padding: 0.8rem;
+  background-color: var(--editor-accent);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.submit-button:hover {
+  background-color: #0066cc;
+}
+
+.error-message {
+  color: var(--editor-error);
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.notes-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  overflow: hidden;
+}
+
+.notes-textarea {
+  flex: 1;
+  padding: 1rem;
+  border: 1px solid var(--editor-border);
+  background-color: var(--editor-header-bg);
+  color: var(--editor-text);
+  border-radius: 4px;
+  resize: none;
+  font-family: inherit;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+} 

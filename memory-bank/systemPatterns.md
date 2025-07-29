@@ -55,6 +55,13 @@ flowchart LR
    - Admin panel
    - Home page navigation
 
+6. **Text Highlighting Pattern**
+   - Real-time highlight synchronization across clients
+   - Multiple user highlight support with unique colors
+   - Highlight persistence during editing
+   - Efficient highlight state management
+   - Conflict resolution for overlapping highlights
+
 ## Key Implementation Paths
 
 ### Room Creation and Connection
@@ -66,8 +73,9 @@ flowchart LR
 ### Content Synchronization
 1. Receive content updates via WebSocket
 2. Broadcast to other connected clients
-3. Persist changes to database
-4. Handle disconnections gracefully
+3. Synchronize text highlights across clients
+4. Persist changes to database
+5. Handle disconnections gracefully
 
 ### Security Implementation
 1. Room password validation
